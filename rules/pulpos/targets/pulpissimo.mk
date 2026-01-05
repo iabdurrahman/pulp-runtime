@@ -18,9 +18,9 @@ PULP_ARCH_OBJDFLAGS ?=
 else
 PULP_LDFLAGS      +=
 PULP_CFLAGS       +=  -D__riscv__
-PULP_ARCH_CFLAGS ?=  -march=rv32imcxgap9
-PULP_ARCH_LDFLAGS ?=  -march=rv32imcxgap9
-PULP_ARCH_OBJDFLAGS ?= -Mmarch=rv32imcxgap9
+PULP_ARCH_CFLAGS ?=  -march=rv32imfcxpulpv2
+PULP_ARCH_LDFLAGS ?=  -march=rv32imfcxpulpv2
+PULP_ARCH_OBJDFLAGS ?= -Mmarch=rv32imfcxpulpv2
 endif
 
 PULP_CFLAGS    += -fdata-sections -ffunction-sections -include chips/pulpissimo/config.h -I$(PULPRT_HOME)/include/chips/pulpissimo
