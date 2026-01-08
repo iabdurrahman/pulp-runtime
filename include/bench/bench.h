@@ -213,7 +213,7 @@ static inline void perf_enable_id( int eventid){
   cpu_perf_conf(SPR_PCMR_ACTIVE | SPR_PCMR_SATURATE);
 #endif
 #endif
-};
+}
 
 
 /**

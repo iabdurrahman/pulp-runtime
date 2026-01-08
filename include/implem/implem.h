@@ -91,5 +91,7 @@ static inline void tas_unlock_32(unsigned int addr, signed int value)
 #include "alloc_pool.h"
 #include "soc.h"
 #include "freq.h"
+#include "tick.h"
+#include "delay.h"
 
 #endif

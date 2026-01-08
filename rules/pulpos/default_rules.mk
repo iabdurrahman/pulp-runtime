@@ -22,11 +22,13 @@ PULP_CC := $(PULP_RUNTIME_GCC_TOOLCHAIN)/bin/$(PULP_CC)
 PULP_LD := $(PULP_RUNTIME_GCC_TOOLCHAIN)/bin/$(PULP_LD)
 PULP_OBJDUMP := $(PULP_RUNTIME_GCC_TOOLCHAIN)/bin/$(PULP_OBJDUMP)
 PULP_AR := $(PULP_RUNTIME_GCC_TOOLCHAIN)/bin/$(PULP_AR)
+PULP_GDB := $(PULP_RUNTIME_GCC_TOOLCHAIN)/bin/$(PULP_GDB)
 else ifdef PULP_RISCV_GCC_TOOLCHAIN
 PULP_CC := $(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(PULP_CC)
 PULP_LD := $(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(PULP_LD)
 PULP_OBJDUMP := $(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(PULP_OBJDUMP)
 PULP_AR := $(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(PULP_AR)
+PULP_GDB := $(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(PULP_GDB)
 else
 $(warning "Warning: Neither PULP_RUNTIME_GCC_TOOLCHAIN nor PULP_RISCV_GCC_TOOLCHAIN is set.\
 Using defaults.")
@@ -350,14 +352,38 @@ endif
 endif
 
 ifeq '$(platform)' 'fpga'
-launch_fpga:
+$(TARGET_BUILD_DIR)/launch_fpga: all
 	@echo "file $(TARGETS)" > $@
-	@echo "target remote :3333" >> $@
+	@echo "target extended-remote :3333" >> $@
 	@echo "monitor reset halt" >> $@
 	@echo "load" >> $@
-	@echo "c" >> $@
-run: launch_fpga
-	/opt/riscv/bin/riscv32-unknown-elf-gdb -x launch_fpga
+	@echo "monitor resume" >> $@
+	#@echo "monitor shutdown" >> $@
+	@echo "disconnect" >> $@
+	@echo "detach" >> $@
+	@echo "quit" >> $@
+run: $(TARGET_BUILD_DIR)/launch_fpga
+ifndef PULP_GDB
+	$(error "PULP_GDB is undefined. \
+		please define it in environment variable or \
+		in targets in runtime's rules/pulpos/targets to risc-v gdb")
+endif
+	$(PULP_GDB) -x $<
+
+.PHONY: debug
+$(TARGET_BUILD_DIR)/launch_fpga_debug: all
+	@echo "file $(TARGETS)" > $@
+	@echo "target extended-remote :3333" >> $@
+	@echo "monitor reset halt" >> $@
+	@echo "load" >> $@
+	@echo "continue" >> $@
+debug: $(TARGET_BUILD_DIR)/launch_fpga_debug
+ifndef PULP_GDB
+	$(error "PULP_GDB is undefined. \
+		please define it in environment variable or \
+		in targets in runtime's rules/pulpos/targets to risc-v gdb")
+endif
+	$(PULP_GDB) -x $<
 endif
 
 dis:
