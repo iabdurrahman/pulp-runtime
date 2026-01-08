@@ -28,4 +28,8 @@
 #define ARCHI_SOC_EVENT_I2C_DATA(id)    (ARCHI_SOC_EVENT_PERIPH_FIRST_EVT(ARCHI_UDMA_I2C_ID(id)) + 0)
 #define ARCHI_SOC_EVENT_I2C_CMD(id)    (ARCHI_SOC_EVENT_PERIPH_FIRST_EVT(ARCHI_UDMA_I2C_ID(id)) + 1)
 
+static inline int plp_i2c_tx_busy(int id) {
+  return pulp_read32(ARCHI_UDMA_ADDR + UDMA_I2C_OFFSET(id) + UDMA_CHANNEL_CUSTOM_OFFSET + 0x10) & 1;
+}
+
 #endif

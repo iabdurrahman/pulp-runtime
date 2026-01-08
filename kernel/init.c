@@ -86,6 +86,9 @@ void pos_init_start()
   {
       cluster_start(hal_cluster_id(), main);
   }
+
+  // start tick
+  pos_tick_init();
 }
 
 
@@ -96,4 +99,7 @@ void pos_init_stop()
 
     /* Call global and static destructors */
     pos_init_do_dtors();
+
+    // stop tick
+    pos_tick_stop();
 }

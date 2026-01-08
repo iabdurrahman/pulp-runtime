@@ -28,11 +28,15 @@
 #include <hal/pulp.h>
 #include <data/data.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   PI_FREQ_DOMAIN_FC     = 0,
-  PI_FREQ_DOMAIN_CL     = 1,
-  PI_FREQ_DOMAIN_PERIPH = 2,
-  PI_FREQ_NB_DOMAINS    = 3
+  PI_FREQ_DOMAIN_CL     = 2, //1
+  PI_FREQ_DOMAIN_PERIPH = 1, //2
+  PI_FREQ_NB_DOMAINS    = 2  //3
 } pi_freq_domain_e;
 
 #ifdef ARCHI_HMR
@@ -100,6 +104,34 @@ void uart_close(int uart_id);
 int uart_write(int uart_id, void *buffer, uint32_t size);
 int uart_read(int uart_id, void *buffer, uint32_t size);
 
+//i2c section
+
+typedef struct {
+    int periph_id;
+    int id;
+    char cs;
+    unsigned int  max_baudrate;
+    unsigned int  div;
+} i2c_t;
+
+#define I2C_CMD_BUFFER_SIZE 16
+
+typedef struct {
+  signed char id;
+  signed char cs;
+  unsigned int max_baudrate;
+} i2c_dev_t;
+
+
+i2c_t *i2c_open(i2c_dev_t *dev);
+void i2c_close(i2c_t *i2c);
+void i2c_write(i2c_t *dev, unsigned char *data, int length);
+void i2c_read(i2c_t *dev_i2c, unsigned char *rx_buff, int length, int pending);
+void i2c_dev_init(i2c_dev_t *dev);
+
+
+//i2c section
+
 void synch_barrier();
 
 
@@ -109,6 +141,9 @@ void pi_l1_free(int cid, void *chunk, int size);
 void *pi_l2_malloc(int size);
 void pi_l2_free(void *_chunk, int size);
 
+#ifdef __cplusplus
+}
+#endif
 
 
 

@@ -163,51 +163,51 @@ static inline uint32_t plpUdmaTxChCfgGet (plpUdmaRxTxChHandle_t * handle);
 // UDMA RX/TX Channels HAL functions definition
 static inline void plpUdmaRxChStartAddrSet (plpUdmaRxTxChHandle_t * handle, uint32_t data) {
     handle->rx_ch_saddr = data;
-};
+}
 
 static inline uint32_t plpUdmaRxChStartAddrGet (plpUdmaRxTxChHandle_t * handle) {
     return handle->rx_ch_saddr;
-};
+}
 
 static inline void plpUdmaRxChSizeSet (plpUdmaRxTxChHandle_t * handle, uint32_t data) {
     handle->rx_ch_size = data;
-};
+}
 
 static inline uint32_t plpUdmaRxChSizeGet (plpUdmaRxTxChHandle_t * handle) {
     return handle->rx_ch_size;
-};
+}
 
 static inline void plpUdmaRxChCfgSet (plpUdmaRxTxChHandle_t * handle, uint32_t data) {
     handle->rx_ch_cfg = data;
-};
+}
 
 static inline uint32_t plpUdmaRxChCfgGet (plpUdmaRxTxChHandle_t * handle) {
     return handle->rx_ch_cfg;
-};
+}
 
 static inline void plpUdmaTxChStartAddrSet (plpUdmaRxTxChHandle_t * handle, uint32_t data) {
     handle->tx_ch_saddr = data;
-};
+}
 
 static inline uint32_t plpUdmaTxChStartAddrGet (plpUdmaRxTxChHandle_t * handle) {
     return handle->tx_ch_saddr;
-};
+}
 
 static inline void plpUdmaTxChSizeSet (plpUdmaRxTxChHandle_t * handle, uint32_t data) {
     handle->tx_ch_size = data;
-};
+}
 
 static inline uint32_t plpUdmaTxChSizeGet (plpUdmaRxTxChHandle_t * handle) {
     return handle->tx_ch_size;
-};
+}
 
 static inline void plpUdmaTxChCfgSet (plpUdmaRxTxChHandle_t * handle, uint32_t data) {
     handle->tx_ch_cfg = data;
-};
+}
 
 static inline uint32_t plpUdmaTxChCfgGet (plpUdmaRxTxChHandle_t * handle) {
     return handle->tx_ch_cfg;
-};
+}
 
 
 
