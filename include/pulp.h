@@ -132,6 +132,51 @@ void i2c_dev_init(i2c_dev_t *dev);
 
 //i2c section
 
+//SPI section
+
+typedef enum {
+  SPIM_WORDSIZE_8 = 0,     /*!< Each element is 8 bits. Thus the endianness has no effect. */
+  SPIM_WORDSIZE_32 = 1     /*!< Each element is 32 bits. The way each element is stored in memory can then be specified with the endianness. */
+} spim_wordsize_e;
+
+typedef struct {
+  int id; 
+  char channel;
+  char wordsize;          
+  char big_endian;        
+  char polarity;          
+  char phase;             
+  int max_baudrate;       
+  char cs;
+  char byte_align;         
+  unsigned int div;
+  unsigned int cfg;
+  signed char cs_gpio; 
+} spim_t;
+
+typedef struct {
+  int max_baudrate;       /*!< Maximum baudrate for the SPI bitstream which can be used with the opened device . */
+  char wordsize;          /*!< Wordsize of the elements in the bitstream. Can be RT_SPIM_WORDSIZE_8 for 8 bits data or RT_SPIM_WORDSIZE_32 for 32 bits data. This is used to interpret the endianness. */
+  char big_endian;        /*!< If 1, the elements are stored in memory in a big-endian way, i.e. the most significant byte is stored at the lowest address. This is taken into account only if the wordsize is 32 bits. */
+  char polarity;          /*!< Polarity of the clock. */
+  char phase;             /*!< Phase of the clock. */
+  signed char cs_gpio;    /*!< If it is different from -1, the specified number is used to drive a GPIO which is used as a chip select for the SPI device. The cs field is then ignored. */
+  signed char cs;         /*!< If cs_gpio is -1, the normal chip select pins are used and this field specifies which one to use for the device. */
+  signed char id;         /*!< If it is different from -1, this specifies on which SPI interface the device is connected. */
+} spim_conf_t;
+
+typedef enum {
+  SPIM_CS_AUTO     = 0,    /*!< Handles the chip select automatically. It is set low just before the transfer is started and set back high when the transfer is finished. */
+  SPIM_CS_KEEP     = 1,    /*!< Handle the chip select manually. It is set low just before the transfer is started and is kept low until the next transfer. */
+  SPIM_CS_NONE     = 2,    /*!< Don't do anything with the chip select. */
+} spim_cs_e;
+
+spim_t *spim_open(spim_conf_t *spim);
+void spim_send(spim_t *spim, void *data, size_t len, int qspi, spim_cs_e mode);
+void spim_conf_init(spim_conf_t *spim);
+
+//SPI section
+
 void synch_barrier();
 
 
