@@ -16,7 +16,7 @@ static inline int __spim_id(int periph_id)
   return periph_id - ARCHI_UDMA_SPIM_ID(0); // 
 }
 
-static int __rt_spi_get_div(int spi_freq)
+int spi_get_div(int spi_freq)
 {
   int periph_freq = pos_freq_domains[PI_FREQ_DOMAIN_PERIPH];
   if (spi_freq >= periph_freq)
@@ -69,7 +69,7 @@ spim_t *spim_open(spim_conf_t *conf)
   spim->cs = conf->cs;
   spim->byte_align = spim_get_byte_align(conf->wordsize, conf->big_endian);
 
-  int div = __rt_spi_get_div(spim->max_baudrate);
+  int div = spi_get_div(spim->max_baudrate);
   spim->div = div;
 
   spim->cfg = SPI_CMD_CFG(div, conf->polarity, conf->phase);
@@ -114,4 +114,34 @@ void spim_conf_init(spim_conf_t *conf)
   conf->id = -1;
   conf->polarity = 0;
   conf->phase = 0;
+}
+
+void spim_transfer(spim_t *spim, void *tx_data, void *rx_data, size_t len, spim_cs_e mode)
+{
+  static L2_DATA spim_cmd_t cmd_l2;
+  spim_cmd_t *cmd = &cmd_l2;
+
+  cmd->cmd[0] = spim->cfg;
+  cmd->cmd[1] = SPI_CMD_SOT(spim->cs);
+  cmd->cmd[2] = SPI_CMD_FUL(len/8, SPI_CMD_1_WORD_PER_TRANSF, 8, SPI_CMD_MSB_FIRST);
+  cmd->cmd[3] = SPI_CMD_EOT(1, mode == SPIM_CS_KEEP);
+
+  int buffer_size = len/8;
+  int cfg = UDMA_CHANNEL_CFG_SIZE_8 | UDMA_CHANNEL_CFG_EN;
+
+  plp_udma_enqueue(UDMA_SPIM_TX_ADDR(spim->id), (int)tx_data, buffer_size, cfg);
+  plp_udma_enqueue(UDMA_SPIM_RX_ADDR(spim->id), (int)rx_data, buffer_size, cfg);
+  plp_udma_enqueue(UDMA_SPIM_CMD_ADDR(spim->id), (int)cmd, 4*4, cfg);
+
+  while(plp_udma_busy(UDMA_SPIM_TX_ADDR(spim->id)));
+  while(plp_udma_busy(UDMA_SPIM_RX_ADDR(spim->id)));
+  while(plp_udma_busy(UDMA_SPIM_CMD_ADDR(spim->id)));
+}
+
+void spim_close(spim_t *spim)
+{
+  if (spim != 0)
+  {
+    plp_udma_cg_set(plp_udma_cg_get() & ~(1<<(spim->channel)));
+  }
 }
