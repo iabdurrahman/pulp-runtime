@@ -28,6 +28,7 @@
 #include "hal/timer/timer_v2.h"
 #include "hal/soc_eu/soc_eu_v2.h"
 #include "hal/apb_soc/apb_soc_v3.h"
+#include "hal/adv_timer/adv_timer_v1.h"
 #include "hal/fll/fll_v1.h"
 #include "archi/stdout/stdout_v3.h"
 #include "hal/gpio/gpio_v3.h"
