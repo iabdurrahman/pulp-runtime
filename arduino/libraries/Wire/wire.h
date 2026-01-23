@@ -13,7 +13,7 @@ This library implementation use a 32 byte buffer*/
 
 #define WIRE_HAS_TIMEOUT // macro if setWireTimeout(), getWireTimeoutFlag(), and clearWireTimeout() are available
 
-class Wire : public stream {
+class TwoWire : public stream {
 public:
     void begin(void);
     void begin(uint8_t address);
@@ -36,6 +36,6 @@ public:
     bool getWireTimeoutFlag(void);
 }
 
-extern Wire;
+extern TwoWire Wire;
 
 #endif
