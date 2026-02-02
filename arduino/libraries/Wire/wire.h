@@ -9,11 +9,22 @@ This library implementation use a 32 byte buffer*/
 #include <stdbool.h>
 #include "stream.h" //-> parent library for wire
 
-#define buffer 32
+#define BUFFER_LENGTH 32
 
 #define WIRE_HAS_TIMEOUT // macro if setWireTimeout(), getWireTimeoutFlag(), and clearWireTimeout() are available
 
 class TwoWire : public stream {
+private:
+    static uint8_t rxBuffer[];
+    static uint8_t rxIndex;
+    static uint8_t rxLength;
+
+    static uint8_t txAddress;
+    static uint8_t txBuffer[];
+    static uint8_t txIndex;
+    static uint8_t txLength;
+
+    static uint8_t transmitting;
 public:
     void begin(void);
     void begin(uint8_t address);
@@ -29,12 +40,12 @@ public:
     int read(void); // inherit from stream utility class
     void setClock(uint32_t frequency);
     void onReceive(void (*function)(int));
-    void onRequest(void(*function)(int););
+    void onRequest(void(*function)(int));
     void setWireTimeout(uint32_t timeout, bool reset_on_timeout);
     void setWireTimeout(void); //using default timeout
     void clearWireTimeoutFlag(void);
     bool getWireTimeoutFlag(void);
-}
+};
 
 extern TwoWire Wire;
 
