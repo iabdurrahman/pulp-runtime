@@ -1,13 +1,5 @@
 #include "stream.h"
 
-int Stream::available() {
-
-}
-
-int Stream::read() {
-
-}
-
 void Stream::flush() {
 
 }

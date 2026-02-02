@@ -13,8 +13,8 @@ enum LookaheadMode {
 
 class Stream : public Print {
 public :
-    int available(void);
-    int read(void);
+    virtual int available(void) = 0;
+    virtual int read(void) = 0;
     void flush(void);
     bool find(char *target);
     bool find(char *target, size_t length);
