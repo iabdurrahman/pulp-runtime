@@ -7,15 +7,17 @@
 
 class Serials : public Stream {
 protected :
-    bool opened; //for if(Serial)
+    bool _opened; //for if(Serial)
+    int _uart_id;
 public :
+    Serials(int uart_id = 0);
     int availableForWrite(void);
-    void begin(unsigned long baud);
-    void begin(unsigned long baud, int config);
+    void begin(unsigned long baud = 115200);
+    void begin(unsigned long baud = 115200, int config);
     void end(void);
-    // size_t write(val); available on print class 
-    // size_t write(str); available on print class 
-    // size_t write(buf, len); available on print class 
+    int read(void) override;
+    size_t write(uint8_t data) override;
+    int available(void) override;
 };
 
 extern Serials Serial;
