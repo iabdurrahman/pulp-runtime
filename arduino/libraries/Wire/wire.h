@@ -13,7 +13,7 @@ This library implementation use a 32 byte buffer*/
 
 #define WIRE_HAS_TIMEOUT // macro if setWireTimeout(), getWireTimeoutFlag(), and clearWireTimeout() are available
 
-class TwoWire : public stream {
+class TwoWire : public Stream {
 private:
     static uint8_t rxBuffer[];
     static uint8_t rxIndex;
@@ -36,8 +36,8 @@ public:
     size_t write(uint8_t value);
     size_t write(string);
     size_t write(uint8_t data, uint8_t length);
-    int available(void);
-    int read(void); // inherit from stream utility class
+    int available(void) override;
+    int read(void) override; // inherit from stream utility class
     void setClock(uint32_t frequency);
     void onReceive(void (*function)(int));
     void onRequest(void(*function)(int));
