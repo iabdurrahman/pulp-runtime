@@ -12,14 +12,20 @@ enum LookaheadMode {
 };
 
 class Stream : public Print {
+protected :
+    unsigned long _timeout;
+    unsigned long def_timeout = 1000; //in millis
+    int timedRead(); //read with timeout
+    int timedPeek();
+    int peekNextDigit(LookaheadMode lookahead, bool detectDecimal);
 public :
     virtual int available(void) = 0;
     virtual int read(void) = 0;
-    void flush(void);
+    virtual void flush(void) = 0;
     bool find(char *target);
     bool find(char *target, size_t length);
     bool findUntil(char *target, char *terminator);
-    int peek(void);
+    virtual int peek(void) = 0;
     size_t readBytes(char buffer, int length);
     size_t readBytes(byte buffer, int length);
     size_t readBytesUntil(char character, char buffer, int length);
