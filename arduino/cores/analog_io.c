@@ -56,12 +56,12 @@ void analogWrite(int pin, int val){
 	adv_timer_config_frequency(timer, 4, max_resolution);
     th_channel = ADV_TIMER_TN_TH_CHANNELM_TH_SET(th_channel, val);
 
-    if (val == 0)
+    if (val == min_resolution)
 	{
 		th_channel = ADV_TIMER_TN_TH_CHANNELM_MODE_SET(th_channel, 0x4);
 	}
 
-    else if (val == 255)
+    else if (val == max_resolution)
 	{
 		th_channel = ADV_TIMER_TN_TH_CHANNELM_MODE_SET(th_channel, 0x0);
 	}
@@ -93,5 +93,5 @@ void analogWrite(int pin, int val){
 }
 
 void analogWriteResolution(int bits){
-
+	def_resolution = bits;
 }
