@@ -45,3 +45,10 @@ int Serials::available() {
     return -1;
 }
 
+int Serials::peek(void) {
+    return -1;
+}
+
+void Serials::flush(void) {
+    return -1;
+}

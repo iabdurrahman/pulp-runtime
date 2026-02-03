@@ -18,6 +18,8 @@ public :
     int read(void) override;
     size_t write(uint8_t data) override;
     int available(void) override;
+    int peek(void) override;
+    void flush(void) override;
 };
 
 extern Serials Serial;
