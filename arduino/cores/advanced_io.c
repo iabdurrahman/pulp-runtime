@@ -25,7 +25,13 @@ unsigned long pulseInLong(int pin, int value) {
 
 unsigned long pulseInLong(int pin, int value, unsigned long timeout) {
 
+    timeout = (timeout > 180000000UL) ? 180000000UL : timeout;
+
     unsigned long startMicros = pos_tick_get_counter_us();
+
+    while (digitalReadPulse(pin) == value) {
+        if (pos_tick_get_counter_us() - startMicros > timeout) return 0;
+    }
 
     while (digitalReadPulse(pin) != value) {
         if (pos_tick_get_counter_us() - startMicros > timeout) return 0;
