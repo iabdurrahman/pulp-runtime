@@ -112,11 +112,11 @@ size_t TwoWire::write(uint8_t value) {
 }
 
 size_t TwoWire::write(const char *str) {
-
+    return -1;
 }
 
 size_t TwoWire::write(const String &myString) {
-
+    return -1;
 }
 
 size_t TwoWire::write(const uint8_t *data, size_t length) {
@@ -174,5 +174,5 @@ void TwoWire::clearWireTimeoutFlag(void) {
 }
 
 bool TwoWire::getWireTimeoutFlag(void) {
-
+    return -1;
 }

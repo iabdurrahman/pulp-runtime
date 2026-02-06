@@ -17,13 +17,13 @@ IPAddress::IPAddress(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4)
 }
 
 IPAddress IPAddress::localIP() {
-
+    return IPAddress();
 }
 
 IPAddress IPAddress::subnet() {
-
+    return IPAddress();
 }
 
 IPAddress IPAddress::gatewayIP() {
-    
+    return IPAddress();
 }

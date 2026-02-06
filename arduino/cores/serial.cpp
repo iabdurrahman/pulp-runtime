@@ -32,7 +32,7 @@ void Serials::end(void) {
 
 int Serials::read() {
     uint8_t byte;
-    int ret = uart_read(_uart_id, &byte, 1);
+    uart_read(_uart_id, &byte, 1);
     return byte;
 }
 

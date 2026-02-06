@@ -1,4 +1,4 @@
-#include "time.h"
+#include "arduino_time.h"
 #include "implem/delay.h"
 #include "implem/tick.h"
 

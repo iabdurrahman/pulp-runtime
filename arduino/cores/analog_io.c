@@ -9,7 +9,7 @@
 static int def_resolution = 255;
 
 int analogRead(int pin){
-
+	return -1;
 }
 
 void analogReadResolution(int bits){
@@ -28,11 +28,9 @@ void analogWrite(int pin, int val){
 	size_t   channel = 0xffffffff;
 
     /* register value */
-	uint32_t config;
 	uint32_t event_cfg = 0;
 	uint32_t th_channel = 0;
 
-	uint32_t padmux;
 	int max_resolution = def_resolution;
 	int min_resolution = 0;
 
@@ -82,8 +80,6 @@ void analogWrite(int pin, int val){
 
     /* start timer */
 	adv_timer_start(timer);
-
-	printf("Entering test\n");
 
     /* let hardware run the pwm without processor involvement */
 	while (true)

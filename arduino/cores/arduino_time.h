@@ -1,5 +1,7 @@
-#ifndef time_h
-#define time_h
+#ifndef arduino_time_h
+#define arduino_time_h
+
+#include <stdint.h>
 
 void delay(unsigned long ms);
 

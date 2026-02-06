@@ -30,11 +30,11 @@ int WiFiUDP::available(void){
 }
 
 int WiFiUDP::beginPacket(const char *hostName, int port){
-
+    return -1;
 }
 
 int WiFiUDP::beginPacket(uint32_t hostIp, int port){
-
+    return -1;
 }
 
 int WiFiUDP::endPacket(void){
@@ -47,11 +47,11 @@ int WiFiUDP::endPacket(void){
 }
 
 size_t WiFiUDP::write(uint8_t byte){
-
+    return -1;
 }
 
 size_t WiFiUDP::write(const uint8_t *buffer, size_t size){
-
+    return -1;
 }
 
 int WiFiUDP::parsePacket(void){
@@ -99,8 +99,10 @@ void WiFiUDP::stop(void){
 
 uint32_t WiFiUDP::remoteIP(void){
     // Return the 4 bytes IP address of the host who sent the current incoming packet
+    return -1;
 }
 
 uint16_t WiFiUDP::remotePort(void){
     // Returns the port of the host who sent the current incoming packet
+    return -1;
 }

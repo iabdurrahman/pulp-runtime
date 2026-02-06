@@ -27,8 +27,8 @@ public :
     void config(IPAddress ip, IPAddress dns, IPAddress gateaway, IPAddress subnet);
     void setDNS(IPAddress dns_server1);
     void setDNS(IPAddress dns_server1, IPAddress dns_server2);
-    String SSID(void);
-    String SSID(int wifiAccessPoint);
+    // String SSID(void);
+    // String SSID(int wifiAccessPoint);
     byte BSSID(uint8_t* bssid);
     long RSSI(void);
     long RSSI(const char* wifiAccessPoint);

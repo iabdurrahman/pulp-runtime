@@ -1,22 +1,23 @@
 #include "stream.h"
 
+
 int Stream::timedRead() {
     int c;
-    unsigned long _millis = millis();
+    unsigned long _startMillis = millis();
     do {
         c = read();
         if(c >= 0) return c;
-    } while (millis() - _millis < _timeout);
+    } while (millis() - _startMillis < _timeout);
     return -1;
 }
 
 int Stream::timedPeek() {
     int c;
-    unsigned long _millis = millis();
+    unsigned long _startMillis = millis();
     do {
         c = peek();
         if(c >= 0) return c;
-    } while(millis() - _millis < _timeout);
+    } while(millis() - _startMillis < _timeout);
     return -1;
 }
 
@@ -90,7 +91,7 @@ bool Stream::findUntil(char *target, char *terminator) {
     }
 }
 
-size_t Stream::readBytes(char *buffer, int length) {
+size_t Stream::readBytes(char *buffer, size_t length) {
     size_t count = 0;
     while (count < length) {
         int c = timedRead();
@@ -101,11 +102,11 @@ size_t Stream::readBytes(char *buffer, int length) {
     return count;
 }
 
-size_t Stream::readBytes(byte *buffer, int length) {
+size_t Stream::readBytes(byte *buffer, size_t length) {
     return readBytes((char *) buffer, length);
 }
 
-size_t Stream::readBytesUntil(char character, char *buffer, int length) {
+size_t Stream::readBytesUntil(char character, char *buffer, size_t length) {
     size_t count = 0;
     while (count < length) {
         int c = timedRead();
@@ -118,36 +119,36 @@ size_t Stream::readBytesUntil(char character, char *buffer, int length) {
     return count;
 }
 
-size_t Stream::readBytesUntil(char character, byte *buffer, int length) {
+size_t Stream::readBytesUntil(char character, byte *buffer, size_t length) {
     return readBytesUntil(character, (char *) buffer, length);
 }
 
-String Stream::readString(void) {
-    String retval;
-    while(true) {
-        int c = timedRead();
-        if(c < 0) break;
-        retval += (char) c;
-    }
-    return retval;
-}
+// String Stream::readString(void) {
+//     String retval;
+//     while(true) {
+//         int c = timedRead();
+//         if(c < 0) break;
+//         retval += (char) c;
+//     }
+//     return retval;
+// }
 
-String Stream::readStringUntil(char terminator) {
-    String retval;
-    while(true) {
-        int c = timedRead();
-        if (c < 0 || c == (int) terminator)break;
-        retval += (char) c;
-    }
-    return retval;
-}
+// String Stream::readStringUntil(char terminator) {
+//     String retval;
+//     while(true) {
+//         int c = timedRead();
+//         if (c < 0 || c == (int) terminator)break;
+//         retval += (char) c;
+//     }
+//     return retval;
+// }
 
 long Stream::parseInt() {
-    return parseInt(SKIP_ALL, NULL);
+    return parseInt(SKIP_ALL, '\0');
 }
 
 long Stream::parseInt(LookaheadMode lookahead) {
-    return parseInt(lookahead, NULL);
+    return parseInt(lookahead, '\0');
 }
 
 long Stream::parseInt(LookaheadMode lookahead, char ignore) {
@@ -175,11 +176,11 @@ long Stream::parseInt(LookaheadMode lookahead, char ignore) {
 }
 
 float Stream::parseFloat() {
-    return parseFloat(SKIP_ALL, NULL);
+    return parseFloat(SKIP_ALL, '\0');
 }
 
 float Stream::parseFloat(LookaheadMode lookahead) {
-    return parseFloat(lookahead, NULL);
+    return parseFloat(lookahead, '\0');
 }
 
 float Stream::parseFloat(LookaheadMode lookahead, char ignore) {
