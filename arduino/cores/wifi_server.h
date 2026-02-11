@@ -13,9 +13,8 @@
 
 /**
     * class WiFiServer
-    * inherits from Stream class
     */
-class WiFiServer : public Stream
+class WiFiServer
 {
 public :
     /**
@@ -102,7 +101,7 @@ public :
         * @return a client object (this object will evaluate to false in an if-statement if no Client has data available for reading)
         * https://docs.arduino.cc/language-reference/en/functions/wifi/server/#serveravailable
         */
-    WiFiClient available(void) override;
+    WiFiClient available(void);
 };
 
 /**

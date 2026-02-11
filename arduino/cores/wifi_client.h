@@ -95,6 +95,7 @@ public :
     /*byte write(byte data);*/ /* cannot overload function solely based on return type */
     size_t write(char data);
     /*byte write(char data);*/
+    size_t write(const byte *data, size_t length);
 
     /**
         * method print
