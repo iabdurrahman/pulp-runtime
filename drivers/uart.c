@@ -28,7 +28,7 @@ static void uart_wait_tx_done(int periph)
   {
   }
 
-  while(plp_uart_tx_busy(periph - ARCHI_UDMA_UART_ID(0)));
+  // while(plp_uart_tx_busy(periph - ARCHI_UDMA_UART_ID(0)));
 }
 
 
@@ -37,6 +37,7 @@ static void uart_wait_rx_done(int periph)
   while (plp_udma_busy(UDMA_UART_RX_ADDR(periph - ARCHI_UDMA_UART_ID(0))))
   {
   }
+  // while(plp_uart_rx_busy(periph - ARCHI_UDMA_UART_ID(0)));
 }
 
 
