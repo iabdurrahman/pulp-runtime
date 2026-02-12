@@ -47,8 +47,14 @@ size_t Serials::write(const uint8_t *data, size_t length) {
     return length;
 }
 
-int Serials::available() {
-    return -1;
+int Serials::available(void) {
+    int periph = ARCHI_UDMA_UART_ID(_uart_id);
+    int ret = plp_uart_rx_busy(periph);
+    if (ret > 0 ) {
+        return ret;
+    } else {
+        return -1;
+    }
 }
 
 int Serials::peek(void) {
