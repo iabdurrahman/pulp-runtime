@@ -6,7 +6,10 @@
 #ifndef arduino_math_h
 #define arduino_math_h
 
+
+
 #include <math.h> /* provide standard math functions : abs(), pow(), and sqrt() */
+
 
 /**
     * macro to constrain a number 'X' to be within a range (a (min), b (max))
@@ -36,6 +39,9 @@
 */
 #define sq(x) ((x)*(x))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
     * method map
     * re-maps a number from one range to another
@@ -49,6 +55,10 @@
     * https://docs.arduino.cc/language-reference/en/functions/math/map/
 */
 long map (long value, long fromLow, long fromHigh, long toLow, long toHigh);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
