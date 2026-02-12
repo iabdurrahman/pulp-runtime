@@ -63,7 +63,7 @@ compiler.c.elf.cmd=riscv32-unknown-elf-g++
 compiler.c.elf.flags={compiler.arch_flags} {compiler.c.elf.cmd.option_flags} -nostartfiles -nostdlib -Wl,--gc-sections,--print-gc-sections,--print-memory-usage,--verbose=4 -ggdb -T{pulp_runtime.path}/kernel/chips/pulpissimo/link.ld
 
 compiler.libraries.ldflags=-L{build.path}
-compiler.libraries.libs=-lstdc++ -lgcc
+compiler.libraries.libs=-lstdc++ -lm -lgcc
 
 
 ## ELF processing
