@@ -7,7 +7,6 @@
 	* NONINFRINGEMENT.
 	*/
 
-/*  */
 #include <stdint.h>
 
 #include <pulp.h>
