@@ -35,6 +35,8 @@
 #define SPI_CMD_RPT_END_ID   10
 #define SPI_CMD_RX_CHECK_ID  11
 #define SPI_CMD_FUL_ID       12
+#define SPI_CMD_SETUP_UCA_ID 13
+#define SPI_CMD_SETUP_UCS_ID 14
 
 // SPI command fields offset, mask, value definition
 // SPI commands fields offsets
