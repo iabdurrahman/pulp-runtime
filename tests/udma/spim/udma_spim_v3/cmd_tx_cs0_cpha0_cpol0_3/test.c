@@ -32,6 +32,7 @@ __attribute__ ((section(".l2_data"))) uint32_t udma_spim_command[32];
 	*/
 __attribute__ ((section(".l2_data"))) uint8_t spi_tx_data_0[32];
 __attribute__ ((section(".l2_data"))) uint8_t spi_tx_data_1[16];
+__attribute__ ((section(".l2_data"))) uint8_t spi_tx_data_2[16];
 
 int main(void)
 {
@@ -70,22 +71,39 @@ int main(void)
 	spi_tx_data_0[31] = 0xbf; /* 191 */
 
 
-	spi_tx_data_1[ 0] = 0x2d; /*  45 */
-	spi_tx_data_1[ 1] = 0x3d; /*  61 */
-	spi_tx_data_1[ 2] = 0x17; /*  23 */
-	spi_tx_data_1[ 3] = 0xa2; /* 162 */
-	spi_tx_data_1[ 4] = 0x3f; /*  63 */
-	spi_tx_data_1[ 5] = 0xb7; /* 183 */
-	spi_tx_data_1[ 6] = 0x48; /*  72 */
-	spi_tx_data_1[ 7] = 0x6f; /* 111 */
-	spi_tx_data_1[ 8] = 0xdb; /* 219 */
-	spi_tx_data_1[ 9] = 0x31; /*  49 */
-	spi_tx_data_1[10] = 0xba; /* 186 */
-	spi_tx_data_1[11] = 0x5a; /*  90 */
-	spi_tx_data_1[12] = 0xc6; /* 198 */
-	spi_tx_data_1[13] = 0xa7; /* 167 */
-	spi_tx_data_1[14] = 0x82; /* 130 */
-	spi_tx_data_1[15] = 0xb9; /* 185 */
+	spi_tx_data_1[ 0] = 0xaa;
+	spi_tx_data_1[ 1] = 0x00;
+	spi_tx_data_1[ 2] = 0xff;
+	spi_tx_data_1[ 3] = 0x00;
+	spi_tx_data_1[ 4] = 0xff;
+	spi_tx_data_1[ 5] = 0x00;
+	spi_tx_data_1[ 6] = 0xff;
+	spi_tx_data_1[ 7] = 0x00;
+	spi_tx_data_1[ 8] = 0xff;
+	spi_tx_data_1[ 9] = 0x00;
+	spi_tx_data_1[10] = 0xff;
+	spi_tx_data_1[11] = 0x00;
+	spi_tx_data_1[12] = 0xff;
+	spi_tx_data_1[13] = 0x00;
+	spi_tx_data_1[14] = 0x55;
+	spi_tx_data_1[15] = 0x00;
+
+	spi_tx_data_2[ 0] = 0x2d; /*  45 */
+	spi_tx_data_2[ 1] = 0x3d; /*  61 */
+	spi_tx_data_2[ 2] = 0x17; /*  23 */
+	spi_tx_data_2[ 3] = 0xa2; /* 162 */
+	spi_tx_data_2[ 4] = 0x3f; /*  63 */
+	spi_tx_data_2[ 5] = 0xb7; /* 183 */
+	spi_tx_data_2[ 6] = 0x48; /*  72 */
+	spi_tx_data_2[ 7] = 0x6f; /* 111 */
+	spi_tx_data_2[ 8] = 0xdb; /* 219 */
+	spi_tx_data_2[ 9] = 0x31; /*  49 */
+	spi_tx_data_2[10] = 0xba; /* 186 */
+	spi_tx_data_2[11] = 0x5a; /*  90 */
+	spi_tx_data_2[12] = 0xc6; /* 198 */
+	spi_tx_data_2[13] = 0xa7; /* 167 */
+	spi_tx_data_2[14] = 0x82; /* 130 */
+	spi_tx_data_2[15] = 0xb9; /* 185 */
 
 
 
@@ -111,16 +129,19 @@ int main(void)
 	/* configuration */
 	udma_spim_command[0] = SPI_CMD_CFG(SPI_CMD_CFG_CLKDIV(2), SPI_CMD_CFG_CPOL_NEG, SPI_CMD_CFG_CPHA_STD); /* spi configuration */
 
-	/* actual transfer */
+	/* actual spi transfer */
+
 	udma_spim_command[1] = SPI_CMD_SOT(SPI_CMD_SOT_CS0); /* argument 0 for csn[0], argument n is for csn[n] */
 
+	/* cmd */
 	udma_spim_command[2] = SPI_CMD_SEND_CMD((uint16_t) 0x4b, 8, SPI_CMD_QPI_DIS); /* command = 0x4b, (maximum 16-bit), number of bit = 8, qspi = false */
 
 	udma_spim_command[3] = SPI_CMD_DUMMY(8); /* add dummy 8 bit */
 
+	/* trx */
 	udma_spim_command[4] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 1, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, spi_tx_data_0); /* transfer from spi_tx_data_0 address */
 	udma_spim_command[5] = SPI_CMD_SETUP_UCS(/* TX: 1; RX: 0 */ 1, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, 32); /* byte length (tx en = 1) */
-	udma_spim_command[6] = SPI_CMD_TX_DATA(32, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer */
+	udma_spim_command[6] = SPI_CMD_TX_DATA(32, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer (start=1) */
 
 	/*udma_spim_command[7] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_ENA, SPI_CMD_EOT_GEN_EVT_OFFSET);*/ /* generate event, don't keep cs */
 	udma_spim_command[7] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_DIS, SPI_CMD_EOT_GEN_EVT_OFFSET); /* don't generate event, don't keep cs */
@@ -163,20 +184,46 @@ int main(void)
 
 	/* actual transfer */
 	udma_spim_command[ 9] = SPI_CMD_SOT(SPI_CMD_SOT_CS0); /* argument 0 for csn[0], argument n is for csn[n] */
-
 	udma_spim_command[10] = SPI_CMD_SEND_CMD((uint16_t) 0x4c, 8, SPI_CMD_QPI_DIS); /* data = 0x4c, (maximum 16-bit), number of bit = 8, qspi = false */
-
 	udma_spim_command[11] = SPI_CMD_DUMMY(16); /* add dummy 16 bit */
 
 	udma_spim_command[12] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 1, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, spi_tx_data_1); /* transfer from spi_tx_data_1 address */
 	udma_spim_command[13] = SPI_CMD_SETUP_UCS(/* TX: 1; RX: 0 */ 1, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, 16); /* byte length (tx en = 1) */
-	udma_spim_command[14] = SPI_CMD_TX_DATA(16, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer */
+	udma_spim_command[14] = SPI_CMD_TX_DATA(16, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer (start=1) */
 	/*udma_spim_command[15] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_ENA, SPI_CMD_EOT_GEN_EVT_OFFSET);*/ /* generate event, don't keep cs */
-	udma_spim_command[15] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_DIS, SPI_CMD_EOT_GEN_EVT_OFFSET); /* don't generate event, don't keep cs */
+	udma_spim_command[15] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_DIS, SPI_CMD_EOT_CS_KEEP_OFFSET); /* don't generate event, keep cs */
 
 	/* set register address to point to udma_spim_command address */
 	pulp_write32(UDMA_SPIM_CMD_ADDR(0), UDMA_CHANNEL_CFG_CLEAR);
 	plp_udma_enqueue(UDMA_SPIM_CMD_ADDR(0), (uintptr_t) (&(udma_spim_command[8])), 8 * sizeof(uint32_t), UDMA_CHANNEL_CFG_SIZE_8 | UDMA_CHANNEL_CFG_EN_BIT);
+
+	/**
+		* Compiler barrier: flushes previous write to memory
+		* prevent "dead store elimination" or "store coalescing"
+		*/
+	__asm__ volatile (
+		""
+		:
+		:
+		: "memory"
+	);
+
+	/* wait until finish */
+	while (plp_udma_busy(UDMA_SPIM_CMD_ADDR(0)))
+	{
+		/*__asm__ volatile ("wfi\n");*/
+	}
+
+	/* setup new buffer (spi_tx_data_2) */
+	udma_spim_command[16] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 1,/* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, spi_tx_data_2); /* transfer from spi_tx_data_2 address */
+	udma_spim_command[17] = SPI_CMD_SETUP_UCS(/* TX: 1; RX: 0 */ 1,/* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, 16); /* byte length (tx en = 1) */
+	udma_spim_command[18] = SPI_CMD_TX_DATA(16, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer (start=1) */
+	/*udma_spim_command[19] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_ENA, SPI_CMD_EOT_GEN_EVT_OFFSET);*/ /* generate event, don't keep cs */
+	udma_spim_command[19] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_DIS, SPI_CMD_EOT_GEN_EVT_OFFSET); /* don't generate event, don't keep cs */
+
+	/* set register address to point to udma_spim_command address */
+	pulp_write32(UDMA_SPIM_CMD_ADDR(0), UDMA_CHANNEL_CFG_CLEAR);
+	plp_udma_enqueue(UDMA_SPIM_CMD_ADDR(0), (uintptr_t) (&(udma_spim_command[16])), 4 * sizeof(uint32_t), UDMA_CHANNEL_CFG_SIZE_8 | UDMA_CHANNEL_CFG_EN_BIT);
 
 	/**
 		* Compiler barrier: flushes previous write to memory

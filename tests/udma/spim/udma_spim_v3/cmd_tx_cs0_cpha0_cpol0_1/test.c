@@ -89,14 +89,21 @@ int main(void)
 
 	/* configuration */
 	udma_spim_command[0] = SPI_CMD_CFG(SPI_CMD_CFG_CLKDIV(2), SPI_CMD_CFG_CPOL_NEG, SPI_CMD_CFG_CPHA_STD); /* spi configuration */
-	udma_spim_command[1] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 1, /* word per transfer */ 1, spi_tx_data); /* transfer from spi_tx_data address */
-	udma_spim_command[2] = SPI_CMD_SETUP_UCS(/* TX: 1; RX: 0 */ 1, /* word per transfer */ 1, 31); /* byte length - 1 */
 
 	/* actual transfer */
-	udma_spim_command[3] = SPI_CMD_SOT(SPI_CMD_SOT_CS0); /* argument 0 for csn[0], argument n is for csn[n] */
-	udma_spim_command[4] = SPI_CMD_SEND_CMD((uint16_t) 0x4b, 8, SPI_CMD_QPI_DIS); /* data = 0x4b, (maximum 16-bit), number of bit = 8, qspi = false */
-	udma_spim_command[5] = SPI_CMD_DUMMY(8); /* add dummy 8 bit */
-	udma_spim_command[6] = SPI_CMD_TX_DATA(32, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer */
+
+	udma_spim_command[1] = SPI_CMD_SOT(SPI_CMD_SOT_CS0); /* argument 0 for csn[0], argument n is for csn[n] */
+
+	/* cmd */
+	udma_spim_command[2] = SPI_CMD_SEND_CMD((uint16_t) 0x4b, 8, SPI_CMD_QPI_DIS); /* data = 0x4b, (maximum 16-bit), number of bit = 8, qspi = false */
+
+	udma_spim_command[3] = SPI_CMD_DUMMY(8); /* add dummy 8 bit */
+
+	/* trx */
+	udma_spim_command[4] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 1, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, spi_tx_data); /* transfer from spi_tx_data address */
+	udma_spim_command[5] = SPI_CMD_SETUP_UCS(/* TX: 1; RX: 0 */ 1, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, 32); /* byte length (tx en = 1) */
+	udma_spim_command[6] = SPI_CMD_TX_DATA(32, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer (start=1) */
+
 	/*udma_spim_command[7] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_ENA, SPI_CMD_EOT_GEN_EVT_OFFSET);*/ /* generate event, don't keep cs */
 	udma_spim_command[7] = SPI_CMD_EOT(SPI_CMD_EOT_EVENT_DIS, SPI_CMD_EOT_GEN_EVT_OFFSET); /* don't generate event, don't keep cs */
 
