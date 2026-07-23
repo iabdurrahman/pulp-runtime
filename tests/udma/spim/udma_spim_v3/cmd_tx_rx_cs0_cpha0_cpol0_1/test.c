@@ -112,7 +112,6 @@ int main(void)
 	spi_rx_data[37] = 0x6a; /* 106 */
 	spi_rx_data[38] = 0x32; /*  50 */
 	spi_rx_data[39] = 0x7c; /* 124 */
-	spi_rx_data[40] = 0xf7; /* 247 */
 
 
 

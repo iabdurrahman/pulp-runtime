@@ -77,7 +77,6 @@ int main(void)
 	spi_rx_data_1[ 5] = 0x10; /*  16 */
 	spi_rx_data_1[ 6] = 0x2b; /*  43 */
 	spi_rx_data_1[ 7] = 0x2f; /*  47 */
-	spi_rx_data_1[ 8] = 0xe2; /* 226 */
 
 
 
