@@ -30,7 +30,7 @@ __attribute__ ((section(".l2_data"))) uint32_t udma_spim_command[32];
 	* store tx rx buffer in l2
 	* these buffers is the one actually hold data that transferred at spi bus
 	*/
-__attribute__ ((section(".l2_data"))) uint8_t spi_rx_data[32];
+__attribute__ ((section(".l2_data"))) uint8_t spi_rx_data[40];
 
 int main(void)
 {
@@ -71,6 +71,13 @@ int main(void)
 	spi_rx_data[30] = 0xe7; /* 231 */
 	spi_rx_data[31] = 0x27; /*  39 */
 	spi_rx_data[32] = 0x35; /*  53 */
+	spi_rx_data[33] = 0x1b; /*  27 */
+	spi_rx_data[34] = 0xfa; /* 250 */
+	spi_rx_data[35] = 0xdb; /* 219 */
+	spi_rx_data[36] = 0x79; /* 121 */
+	spi_rx_data[37] = 0xdc; /* 220 */
+	spi_rx_data[38] = 0x69; /* 105 */
+	spi_rx_data[39] = 0x58; /*  88 */
 
 
 
@@ -106,7 +113,7 @@ int main(void)
 	udma_spim_command[3] = SPI_CMD_DUMMY(8); /* add dummy 8 bit */
 
 	/* trx */
-	udma_spim_command[4] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 0, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, spi_rx_data); /* transfer from spi_rx_data address */
+	udma_spim_command[4] = SPI_CMD_SETUP_UCA(/* TX: 1; RX: 0 */ 0, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, &(spi_rx_data[4])); /* transfer from spi_rx_data address */
 	udma_spim_command[5] = SPI_CMD_SETUP_UCS(/* TX: 1; RX: 0 */ 0, /* dma increment: 0:8-bit, 1:16-bit, 2:32-bit */ 0, 32); /* byte length (tx en = 1) */
 	udma_spim_command[6] = SPI_CMD_RX_DATA(32, SPI_CMD_1_WORD_PER_TRANSF, SPI_CMD_DATA_WITDH(8), SPI_CMD_QPI_DIS, SPI_CMD_MSB_FIRST); /* transfer (start=1) */
 
