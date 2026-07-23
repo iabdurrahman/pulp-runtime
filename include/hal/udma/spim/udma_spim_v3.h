@@ -26,4 +26,23 @@
 #define UDMA_SPIM_CUSTOM_ADDR(id)     (ARCHI_UDMA_ADDR + UDMA_SPIM_OFFSET(id) + UDMA_CHANNEL_CUSTOM_OFFSET + 0x10)
 #define UDMA_SPIM_AVS(id)             (UDMA_SPIM_CUSTOM_ADDR(id) + 0x04)
 
+/**
+	* OFFSET MAP:
+	*
+	* OFFSET                         REGISTER
+	* UDMA_SPIM_STATUS_ADDR + 0x00   STATUS
+	*
+	* [31: 2] RO   0x0
+	* [ 1: 0] RO   status   (enum status)
+	*
+	* if orderly assigned
+	* enum status
+	* {
+	*   STAT_NONE = 0,
+	*   STAT_CHECK = 1,
+	*   STAT_EOL = 2,
+	* }
+	*/
+#define UDMA_SPIM_STATUS_ADDR(id)         (ARCHI_UDMA_ADDR + UDMA_SPIM_OFFSET(id) + 0x60)
+
 #endif
