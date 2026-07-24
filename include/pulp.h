@@ -187,6 +187,73 @@ void spim_transfer16(spim_t *handle, void *tx_data, void *rx_data, size_t len, s
 int spi_get_div(int spi_freq);
 void spim_close(spim_t *spim);
 
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. send cmd
+  * 2. send dummy cycle
+  * 3. full duplex send tx and receive rx simulataneously
+  */
+int spim_cmd_trx(spim_t * __restrict handle,
+  const uint8_t * __restrict cmd_buf, size_t cmd_bit_len,
+  uint8_t dummy_cycle,
+  const uint8_t * __restrict tx_buf, uint8_t * __restrict rx_buf, size_t trx_buf_len);
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. send cmd
+  * 2. send dummy cycle
+  * 3. send tx             (half-duplex)
+  * 4. receive rx          (half-duplex)
+  */
+int spim_cmd_tx_rx(spim_t * __restrict handle,
+  const uint8_t * __restrict cmd_buf, size_t cmd_bit_len,
+  uint8_t dummy_cycle,
+  const uint8_t * __restrict tx_buf, size_t tx_buf_len,
+  uint8_t * __restrict rx_buf, size_t rx_buf_len);
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. full duplex send tx and receive rx simultaneusly
+  */
+static inline int spim_trx(spim_t * __restrict handle,
+  const uint8_t * __restrict tx_buf, uint8_t * __restrict rx_buf, size_t trx_buf_len)
+{
+  return spim_cmd_trx(handle, NULL, 0, 0, tx_buf, rx_buf, trx_buf_len);
+}
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. send tx             (half-duplex)
+  * 2. receive rx          (half-duplex)
+  */
+static inline int spim_tx_rx(spim_t * __restrict handle,
+  const uint8_t * __restrict tx_buf, size_t tx_buf_len,
+  uint8_t * __restrict rx_buf, size_t rx_buf_len)
+{
+  return spim_cmd_tx_rx(handle, NULL, 0, 0, tx_buf, tx_buf_len, rx_buf, rx_buf_len);
+}
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. send tx             (half-duplex)
+  */
+static inline int spim_tx(spim_t * __restrict handle,
+  const uint8_t * __restrict tx_buf, size_t tx_buf_len)
+{
+  return spim_tx_rx(handle, tx_buf, tx_buf_len, NULL, 0);
+}
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. receive rx          (half-duplex)
+  */
+static inline int spim_rx(spim_t * __restrict handle,
+  uint8_t * __restrict rx_buf, size_t rx_buf_len)
+{
+  return spim_tx_rx(handle, NULL, 0, rx_buf, rx_buf_len);
+}
+
 /* end of SPI section */
 
 void synch_barrier();
