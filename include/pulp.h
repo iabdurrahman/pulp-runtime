@@ -236,12 +236,40 @@ static inline int spim_tx_rx(spim_t * __restrict handle,
 
 /**
   * do spi tansaction (blocking) with following session:
+  * 1. send cmd
+  * 2. send dummy
+  * 3. send tx             (half-duplex)
+  */
+static inline int spim_cmd_tx(spim_t * __restrict handle,
+  const uint8_t * __restrict cmd_buf, size_t cmd_bit_len,
+  uint8_t dummy_cycle,
+  const uint8_t * __restrict tx_buf, size_t tx_buf_len)
+{
+  return spim_cmd_tx_rx(handle, cmd_buf, cmd_bit_len, dummy_cycle, tx_buf, tx_buf_len, NULL, 0);
+}
+
+/**
+  * do spi tansaction (blocking) with following session:
   * 1. send tx             (half-duplex)
   */
 static inline int spim_tx(spim_t * __restrict handle,
   const uint8_t * __restrict tx_buf, size_t tx_buf_len)
 {
   return spim_tx_rx(handle, tx_buf, tx_buf_len, NULL, 0);
+}
+
+/**
+  * do spi tansaction (blocking) with following session:
+  * 1. send cmd
+  * 2. send dummy
+  * 3. receive rx             (half-duplex)
+  */
+static inline int spim_cmd_rx(spim_t * __restrict handle,
+  const uint8_t * __restrict cmd_buf, size_t cmd_bit_len,
+  uint8_t dummy_cycle,
+  uint8_t * __restrict rx_buf, size_t rx_buf_len)
+{
+  return spim_cmd_tx_rx(handle, cmd_buf, cmd_bit_len, dummy_cycle, NULL, 0, rx_buf, rx_buf_len);
 }
 
 /**
