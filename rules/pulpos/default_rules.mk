@@ -38,6 +38,27 @@ $(warning "Warning: Neither PULP_RUNTIME_GCC_TOOLCHAIN nor PULP_RISCV_GCC_TOOLCH
 Using defaults.")
 endif
 
+# ==========================================
+# AUTOMATED L2 LINKER SCRIPT CONFIGURATION
+# ==========================================
+L2_SIZE ?= 512K
+
+ifeq ($(L2_SIZE),2MiB)
+    L2_LINKER_DEFS += -DL2_SIZE_2MiB
+else ifeq ($(L2_SIZE),1MiB)
+    L2_LINKER_DEFS += -DL2_SIZE_1MiB
+else ifeq ($(L2_SIZE),64KiB)
+    L2_LINKER_DEFS += -DL2_SIZE_64KiB
+else
+    L2_LINKER_DEFS += -DL2_SIZE_512KiB
+endif
+
+# Currently only supports pulpissimo chips linker.
+# TODO: Support for other chips
+RUNTIME_CHIP_DIR = $(PULPRT_HOME)/kernel/chips/pulpissimo
+
+$(shell $(PULP_CC) -E -P -x c $(L2_LINKER_DEFS) $(RUNTIME_CHIP_DIR)/link.ld.in -o $(RUNTIME_CHIP_DIR)/link.ld)
+
 
 ifdef gui
 override runner_args += --config-opt=**/vsim/gui=true
