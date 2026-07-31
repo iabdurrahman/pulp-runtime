@@ -214,6 +214,17 @@ int spim_cmd_tx_rx(spim_t * __restrict handle,
 
 /**
   * do spi tansaction (blocking) with following session:
+  * 1. send command
+  */
+static inline int spim_cmd(spim_t * __restrict handle,
+  const uint8_t * __restrict cmd_buf, size_t cmd_bit_len,
+  uint8_t dummy_cycle)
+{
+  return spim_cmd_trx(handle, cmd_buf, cmd_bit_len, dummy_cycle, NULL, NULL, 0);
+}
+
+/**
+  * do spi tansaction (blocking) with following session:
   * 1. full duplex send tx and receive rx simultaneusly
   */
 static inline int spim_trx(spim_t * __restrict handle,
