@@ -182,9 +182,9 @@ int spim_cmd_trx(spim_t * __restrict handle,
 	bool has_dummy_to_transfer = ((dummy_cycle <= 0) ? false : true);
 	bool has_trx_to_transfer   = ((((tx_buf == NULL) && (rx_buf == NULL)) || (trx_buf_len <= 0)) ? false : true);
 
-	size_t len = 0;
+	size_t len = 0; /* length of spim command, in dword (uint32_t) unit */
 
-	size_t cmd_word_len = 0;
+	size_t cmd_word_len = 0; /* number of generated SPI_CMD_SEND_CMD instruction */
 
 	size_t i;
 
@@ -232,9 +232,13 @@ int spim_cmd_trx(spim_t * __restrict handle,
 	}
 
 	/* add prologue and epilogue */
-	len += 2;
+	len += 3;
 
-	/* allocate */
+	/**
+		* FIXME: sanitize len to prevent user/caller to abuse memory allocation
+		*/
+
+	/* allocate (hopefully shared l2) buffer to create command */
 	udma_spim_cmd = (uint32_t *) pi_l2_malloc(len * sizeof(uint32_t));
 	if (udma_spim_cmd == NULL)
 	{
@@ -243,6 +247,11 @@ int spim_cmd_trx(spim_t * __restrict handle,
 
 	/* prologue: assert cs */
 	p = udma_spim_cmd;
+	/**p++ = SPI_CMD_CFG(spi_get_div(handle->max_baudrate),
+		handle->polarity, handle->phase);*/
+	*p++ = handle->cfg; /* cfg is prebuilt SPI_CMD_CFG command from init
+		* for now we cannot provide a (simple) way to set SPI_CMD_CFG
+		* for every spim transaction */
 	*p++ = SPI_CMD_SOT(handle->cs);
 
 	/* send cmd */
@@ -354,9 +363,9 @@ int spim_cmd_tx_rx(spim_t * __restrict handle,
 	bool has_tx_to_transfer    = (((tx_buf == NULL) || (tx_buf_len <= 0)) ? false : true);
 	bool has_rx_to_transfer    = (((rx_buf == NULL) || (rx_buf_len <= 0)) ? false : true);
 
-	size_t len = 0;
+	size_t len = 0; /* length of spim command, in dword (uint32_t) unit */
 
-	size_t cmd_word_len = 0;
+	size_t cmd_word_len = 0; /* number of generated SPI_CMD_SEND_CMD instruction */
 
 	size_t i;
 
@@ -397,9 +406,13 @@ int spim_cmd_tx_rx(spim_t * __restrict handle,
 	}
 
 	/* add prologue and epilogue */
-	len += 2;
+	len += 3;
 
-	/* allocate */
+	/**
+		* FIXME: sanitize len to prevent user/caller to abuse memory allocation
+		*/
+
+	/* allocate (hopefully shared l2) buffer */
 	udma_spim_cmd = (uint32_t *) pi_l2_malloc(len * sizeof(uint32_t));
 	if (udma_spim_cmd == NULL)
 	{
@@ -408,6 +421,11 @@ int spim_cmd_tx_rx(spim_t * __restrict handle,
 
 	/* prologue: assert cs */
 	p = udma_spim_cmd;
+	/**p++ = SPI_CMD_CFG(spi_get_div(handle->max_baudrate),
+		handle->polarity, handle->phase);*/
+	*p++ = handle->cfg; /* cfg is prebuilt SPI_CMD_CFG command from init
+		* for now we cannot provide a (simple) way to set SPI_CMD_CFG
+		* for every spim transaction */
 	*p++ = SPI_CMD_SOT(handle->cs);
 
 	/* send cmd */
