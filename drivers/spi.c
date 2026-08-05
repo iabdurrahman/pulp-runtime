@@ -260,9 +260,16 @@ int spim_cmd_trx(spim_t * __restrict handle,
 		for (i = 0; i < cmd_word_len; ++i)
 		{
 			uint16_t cmd_word;
-			cmd_word   = (uint16_t) *cmd_buf++;
-			cmd_word <<= 8;
-			cmd_word  |= (uint16_t) *cmd_buf++;
+
+			uint16_t cmd_byte_msb;
+			uint16_t cmd_byte_lsb;
+
+			cmd_byte_msb = (uint16_t) *cmd_buf++;
+			cmd_byte_msb <<= 8;
+
+			cmd_byte_lsb = (uint16_t) *cmd_buf++;
+
+			cmd_word = (cmd_byte_msb & 0xff00) | (cmd_byte_lsb & 0x00ff);
 
 			/* 16-bit */
 			*p++ = SPI_CMD_SEND_CMD(cmd_word, 16, SPI_CMD_QPI_DIS);
@@ -434,9 +441,16 @@ int spim_cmd_tx_rx(spim_t * __restrict handle,
 		for (i = 0; i < cmd_word_len; ++i)
 		{
 			uint16_t cmd_word;
-			cmd_word   = (uint16_t) *cmd_buf++;
-			cmd_word <<= 8;
-			cmd_word  |= (uint16_t) *cmd_buf++;
+
+			uint16_t cmd_byte_msb;
+			uint16_t cmd_byte_lsb;
+
+			cmd_byte_msb = (uint16_t) *cmd_buf++;
+			cmd_byte_msb <<= 8;
+
+			cmd_byte_lsb = (uint16_t) *cmd_buf++;
+
+			cmd_word = (cmd_byte_msb & 0xff00) | (cmd_byte_lsb & 0x00ff);
 
 			/* 16-bit */
 			*p++ = SPI_CMD_SEND_CMD(cmd_word, 16, SPI_CMD_QPI_DIS);
