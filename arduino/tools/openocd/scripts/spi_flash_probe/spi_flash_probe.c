@@ -21,14 +21,56 @@
 	* private define
 	*/
 
+
+/* spi device index */
+#ifndef SPI_ID
+#define SPI_ID   0
+#endif
+
+#ifndef SPI_BAUDRATE
+#define SPI_BAUDRATE   1000000
+#endif
+
+/* index of spi cs {0-3} */
+#ifndef SPI_CS_N
+#define SPI_CS_N    0
+#endif
+
+
 /* spi padmux config */
 
-#define SPI_CS_PAD          4 /* CSN0 */
+/* padmux configuration to spi cs */
+#ifndef SPI_CS_N
+	#error SPI_CS_N should be defined, the value is number 0-3 correspond to index of cs to be used
+#else
+	#if   ((SPI_CS_N) == 0)
+		#define SPI_CS_PAD                  4 /* CSN0 */
+		#define SPI_CS_PAD_MUX_VALUE        0
+	#elif ((SPI_CS_N) == 1)
+		/* use cs 1 is not supported */
+		#error  SPI_CS_PAD and SPI_CS_PAD_MUX_VALUE cannot be defined for SPI_CS_N == 1 \
+			due to hardware limitation, please choose another value SPI_CS_N {0-3} !1
+	#elif ((SPI_CS_N) == 2)
+		/* use cs 2 is not supported */
+		#error  SPI_CS_PAD and SPI_CS_PAD_MUX_VALUE cannot be defined for SPI_CS_N == 2 \
+			due to hardware limitation, please choose another value SPI_CS_N {0-3} !2
+
+	#elif ((SPI_CS_N) == 3)
+		/* use cs 3 is not supported */
+		#error  SPI_CS_PAD and SPI_CS_PAD_MUX_VALUE cannot be defined for SPI_CS_N == 3 \
+			due to hardware limitation, please choose another value SPI_CS_N {0-3} !3
+	#else
+		/* unknown number chosen for cs */
+		#error  invalid SPI_CS_N value, SPI_CS_N value should be 0-3
+	#endif
+#endif /* defined(SPI_CS_N) */
+
+
+/* padmux configuration for clk, mosi, and miso */
 #define SPI_SCK_PAD         6
 #define SPI_MOSI_IO0_PAD    0
 #define SPI_MISO_IO1_PAD    1
 
-#define SPI_CS_PAD_MUX_VALUE        0
 #define SPI_SCK_PAD_MUX_VALUE       0
 #define SPI_MOSI_IO0_PAD_MUX_VALUE  0
 #define SPI_MISO_IO1_PAD_MUX_VALUE  0
@@ -52,12 +94,12 @@
 
 /* maximum number of parameter */
 #ifndef JESD216_MAX_NUMBER_OF_PARAMETER
-#define JESD216_MAX_NUMBER_OF_PARAMETER   4
+#define JESD216_MAX_NUMBER_OF_PARAMETER   2
 #endif
 
 /* parameter size in dword unit (uint32_t) */
 #ifndef JESD216_PARAMETER_MAX_SIZE_DWORD
-#define JESD216_PARAMETER_MAX_SIZE_DWORD   12
+#define JESD216_PARAMETER_MAX_SIZE_DWORD   20
 #endif
 
 #if ((JESD216_PARAMETER_MAX_SIZE_DWORD) < 9)
@@ -140,7 +182,7 @@ int main(void)
 
 	struct jesd216_sfdp_info_s info;
 
-	uint8_t        buffer[JESD216_MAX_NUMBER_OF_PARAMETER * sizeof(uint32_t)];
+	uint8_t        buffer[JESD216_PARAMETER_MAX_SIZE_DWORD * sizeof(uint32_t)];
 	uint8_t        cmd[JESD216_MAX_NUMBER_OF_PARAMETER * sizeof(uint32_t)];
 	/*size_t         buffer_len;*/
 
@@ -149,12 +191,10 @@ int main(void)
 	uint32_t       address;
 
 	uint32_t       number_of_parameter_header;
+	uint32_t       original_number_of_parameter_header;
 
 	char           report[REPORT_SIZE];
 	size_t         report_offset;
-
-	/* stop tick for this whole process */
-	pos_tick_stop();
 
 	/* set correct i/o pad function */
 	hal_apb_soc_pad_set_function(SPI_CS_PAD, SPI_CS_PAD_MUX_VALUE);
@@ -201,9 +241,9 @@ int main(void)
 	spim_conf_init(&spim_conf);
 
 	/* set necessary configuration */
-	spim_conf.max_baudrate = 1000000;
-	spim_conf.id = 0;
-	spim_conf.cs = 0;
+	spim_conf.max_baudrate = SPI_BAUDRATE;
+	spim_conf.id = SPI_ID;
+	spim_conf.cs = SPI_CS_N;
 
 
 	/**
@@ -241,7 +281,7 @@ int main(void)
 		* byte 5 : started to get continous rx (no warp around)
 		*/
 
-	address = 0;
+	address = 0x00; /* SFDP register */
 
 	/* initialize command to read data */
 	cmd[0] = 0x5a; /* read sfdp register */
@@ -249,24 +289,15 @@ int main(void)
 	cmd[2] = (address >>  8) & 0xff;
 	cmd[3] =  address        & 0xff;
 
-	cmd[4] = 0x00; /* dummy */
+	/* empty out rx */
+	memset(buffer, -1, 2 * sizeof(uint32_t));
 
 	/**
 		* send command read sfdp register, keep cs low
 		* use buffer for temporary storege, read value will be discarded
 		*/
-	spim_transfer(spim, cmd, buffer, 5 * 8, SPIM_CS_KEEP);
-
-	/* make cmd empty again for transfer data */
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
-	cmd[3] = 0x00;
-
-	cmd[4] = 0x00;
-
-	/* read sfdp header value (2 * uint32_t) */
-	spim_transfer(spim, cmd, buffer, (4 * 2) * 8, SPIM_CS_AUTO);
+	spim_cmd_rx(spim, cmd, 4 * 8, 8, buffer, 2 * sizeof(uint32_t));
+	pos_delay_busy_ms(1);
 
 	/* reconstruct data */
 	info.sfdp_header.header_value[0] = \
@@ -321,9 +352,9 @@ int main(void)
 		*/
 
 	printf("reading %u SFDP parameter header" LINEEND,
-		(unsigned int) ((info.sfdp_header.header_value[1] & 0x00ff0000) >> 16) + 1);
+		(unsigned int) number_of_parameter_header);
 
-	address = 0x8;
+	address = 0x08;
 
 	/* initialize command to read data */
 	cmd[0] = 0x5a; /* read sfdp register */
@@ -331,52 +362,53 @@ int main(void)
 	cmd[2] = (address >>  8) & 0xff;
 	cmd[3] =  address        & 0xff;
 
-	cmd[4] = 0x00; /* dummy */
+	/**
+		* prepare receive buffer, only read as much as we capable of
+		* if number_of_parameter_header exceed JESD216_MAX_NUMBER_OF_PARAMETER,
+		* silently clip it to JESD216_MAX_NUMBER_OF_PARAMETER
+		*/
+
+	/* save number_of_parameter_header to original_number_of_parameter_header */
+	original_number_of_parameter_header = number_of_parameter_header;
+
+	/* clip it if necessary */
+	number_of_parameter_header = (number_of_parameter_header > JESD216_MAX_NUMBER_OF_PARAMETER) ?
+		JESD216_MAX_NUMBER_OF_PARAMETER :
+		number_of_parameter_header;
+
+	memset(buffer, -1, number_of_parameter_header * 2 * sizeof(uint32_t));
 
 	/**
-		* send command read sfdp register, keep cs low
-		* use buffer for temporary storage, read value will be discarded
+		* send command read sfdp register
+		* read from address 0x08 to read SFDP parameter header
+		* we read all sfdp parameter header at once
 		*/
-	spim_transfer(spim, cmd, buffer, 5 * 8, SPIM_CS_KEEP);
+	spim_cmd_rx(spim, cmd, 4 * 8, 8, buffer, number_of_parameter_header * 2 * sizeof(uint32_t));
+	pos_delay_busy_ms(1);
 
-	/* make cmd empty again for transfer data */
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
-	cmd[3] = 0x00;
-
-	cmd[4] = 0x00;
-
-	for (i = 0;
-		(i < (number_of_parameter_header - 1)) && (i < (JESD216_MAX_NUMBER_OF_PARAMETER - 1));
-		++i)
+	/* reconstruct info */
+	for (i = 0; i < number_of_parameter_header; ++i)
 	{
-		/* read sfdp header value (2 * uint32_t) */
-		spim_transfer(spim, cmd, buffer, (4 * 2) * 8, SPIM_CS_KEEP);
+		j = i * 2 * sizeof(uint32_t); /* move every 8 byte */
 
-		/* reconstruct data */
+		/* reconstruct info from received buffer */
 		info.parameter_header[i].header_value[0] = \
-			((uint32_t)  ((uint8_t) (buffer[0])))        | \
-			(((uint32_t) ((uint8_t) (buffer[1]))) <<  8) | \
-			(((uint32_t) ((uint8_t) (buffer[2]))) << 16) | \
-			(((uint32_t) ((uint8_t) (buffer[3]))) << 24);
+			((uint32_t)  ((uint8_t) (buffer[j])))            | \
+			(((uint32_t) ((uint8_t) (buffer[j + 1]))) <<  8) | \
+			(((uint32_t) ((uint8_t) (buffer[j + 2]))) << 16) | \
+			(((uint32_t) ((uint8_t) (buffer[j + 3]))) << 24);
 
 		info.parameter_header[i].header_value[1] = \
-			((uint32_t)  ((uint8_t) (buffer[4])))        | \
-			(((uint32_t) ((uint8_t) (buffer[5]))) <<  8) | \
-			(((uint32_t) ((uint8_t) (buffer[6]))) << 16) | \
-			(((uint32_t) ((uint8_t) (buffer[7]))) << 24);
+			((uint32_t)  ((uint8_t) (buffer[j + 4])))        | \
+			(((uint32_t) ((uint8_t) (buffer[j + 5]))) <<  8) | \
+			(((uint32_t) ((uint8_t) (buffer[j + 6]))) << 16) | \
+			(((uint32_t) ((uint8_t) (buffer[j + 7]))) << 24);
 
-
-		/**
-			* check header 1
-			*/
 
 		/* check if parameter length is correct (>= 1) */
 		if ((info.parameter_header[i].header_value[0] & 0xff000000) < 0x01000000)
 		{
 			/* error, parameter length is incorrect */
-			spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_AUTO); /* close spim trx */
 
 			/* don't continue */
 			puts("error: parameter_header: length incorrect: 0");
@@ -392,100 +424,33 @@ int main(void)
 			if ((info.parameter_header[i].header_value[0] & 0x0000ff00) < 0x00000100)
 			{
 				/* error, jedec major revision start from 1 */
-				spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_AUTO); /* close spim trx */
 
 				/* don't continue */
 				puts("error: parameter_header: major revision incorrect: 0");
 				goto do_exit;
 			}
 		}
+		/* cannot handle non-JEDEC parameter header, so just save it, and silently forget it */
 
 
 		/**
 			* check parameter header 2
+			*
+			* msb must 0xff
+			* address of parameter should more than parameter header
 			*/
 
 		if (( (info.parameter_header[i].header_value[1] & 0xff000000) != 0xff000000) || \
-			( (info.parameter_header[i].header_value[1] & 0x00ffffff)  < ((number_of_parameter_header + 2) * 4)) || \
+			( (info.parameter_header[i].header_value[1] & 0x00ffffff)  < ((original_number_of_parameter_header + 2) * 4)) || \
 			(((info.parameter_header[i].header_value[1] & 0x00ffffff)  % 4) != 0))
 		{
-			/* error, MSB should 0xff, address should be more than header length, address should be 4 byte alligned */
-			spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_AUTO); /* close spim trx */
+			/* error, MSB should 0xff, address should be more than header length, address should be 4 byte aligned */
 
 			/* don't continue */
 			puts("error: parameter_header: msb invalid or invalid address");
 			goto do_exit;
 		}
 	}
-
-
-	/**
-		* read last data
-		*/
-	/* read sfdp header value (2 * uint32_t) */
-	spim_transfer(spim, cmd, buffer, (4 * 2) * 8, SPIM_CS_AUTO);
-
-	/* reconstruct data */
-	info.parameter_header[i].header_value[0] = \
-		((uint32_t)  ((uint8_t) (buffer[0])))        | \
-		(((uint32_t) ((uint8_t) (buffer[1]))) <<  8) | \
-		(((uint32_t) ((uint8_t) (buffer[2]))) << 16) | \
-		(((uint32_t) ((uint8_t) (buffer[3]))) << 24);
-
-	info.parameter_header[i].header_value[1] = \
-		((uint32_t)  ((uint8_t) (buffer[4])))        | \
-		(((uint32_t) ((uint8_t) (buffer[5]))) <<  8) | \
-		(((uint32_t) ((uint8_t) (buffer[6]))) << 16) | \
-		(((uint32_t) ((uint8_t) (buffer[7]))) << 24);
-
-
-	/**
-		* check header 1
-		*/
-
-	/* check if parameter length is correct (>= 1) */
-	if ((info.parameter_header[i].header_value[0] & 0xff000000) < 0x01000000)
-	{
-		/* error */
-		puts("error: parameter_header: length incorrect: 0");
-
-		/* don't continue */
-		goto do_exit;
-	}
-
-	/* check parameter header */
-	if ((info.parameter_header[i].header_value[0] & 0x000000ff) == 0)
-	{
-		/* this header is JEDEC HEADER */
-
-		/* check if revision is correct */
-		if ((info.parameter_header[i].header_value[0] & 0x0000ff00) < 0x00000100)
-		{
-			/* error, jedec major revision start from 1 */
-			puts("error: parameter_header: jedec major revision incorrect: 0");
-
-			/* don't continue */
-			goto do_exit;
-		}
-	}
-
-
-	/**
-		* check parameter header 2
-		*/
-
-	if (( (info.parameter_header[i].header_value[1] & 0xff000000) != 0xff000000) || \
-		( (info.parameter_header[i].header_value[1] & 0x00ffffff)  < ((number_of_parameter_header + 2) * 4)) || \
-		(((info.parameter_header[i].header_value[1] & 0x00ffffff)  % 4) != 0))
-	{
-		/* error, MSB should 0xff, address should be more than header length, address should be 4 byte alligned */
-		puts("error: parameter_header: msb invalid or invalid address");
-
-		/* don't continue */
-		goto do_exit;
-	}
-
-
 
 
 	/**
@@ -496,12 +461,20 @@ int main(void)
 		*/
 
 	printf("reading %u SFDP parameter" LINEEND,
-		(unsigned int) ((info.sfdp_header.header_value[1] & 0x00ff0000) >> 16) + 1);
+		(unsigned int) number_of_parameter_header);
 
-	for (i = 0;
-		(i < (((size_t) (info.sfdp_header.header_value[1] & 0x00ff0000)) >> 16)) && (i < (JESD216_MAX_NUMBER_OF_PARAMETER - 1));
-		++i)
+	for (i = 0; i < number_of_parameter_header; ++i)
 	{
+		/* parameter length is 1 based, 1 : 1 dword */
+		size_t parameter_length = (info.parameter_header[i].header_value[0] & 0xff000000) >> 24;
+
+		/* clip parameter length */
+		if (parameter_length > JESD216_PARAMETER_MAX_SIZE_DWORD)
+		{
+			parameter_length = JESD216_PARAMETER_MAX_SIZE_DWORD;
+		}
+
+		/* get parameter address */
 		address = info.parameter_header[i].header_value[1] & 0x00ffffff;
 
 		/* initialize command to read data */
@@ -510,115 +483,26 @@ int main(void)
 		cmd[2] = (address >>  8) & 0xff;
 		cmd[3] =  address        & 0xff;
 
-		cmd[4] = 0x00; /* dummy */
+		/* prepare rx buffer */
+		memset(buffer, -1, parameter_length	* sizeof(uint32_t));
 
-		/**
-			* send command read sfdp register, keep cs low
-			* use buffer for temporary storage, read value will be discarded
-			*/
-		spim_transfer(spim, cmd, buffer, 5 * 8, SPIM_CS_KEEP);
+		/* read parameter */
+		spim_cmd_rx(spim, cmd, 4 * 8, 8, buffer, parameter_length * sizeof(uint32_t));
+		pos_delay_busy_ms(1);
 
-		/* make cmd empty again for transfer data */
-		cmd[0] = 0x00;
-		cmd[1] = 0x00;
-		cmd[2] = 0x00;
-		cmd[3] = 0x00;
-
-		cmd[4] = 0x00;
-
-		for (j = 0;
-			(j < ((((size_t) (info.parameter_header[i].header_value[0] & 0xff000000)) >> 24) - 1)) && (j < (JESD216_PARAMETER_MAX_SIZE_DWORD - 1));
-			++j)
+		/* collect parameter value */
+		for (j = 0; j < parameter_length; ++j)
 		{
-			/* read sfdp header value (2 * uint32_t) */
-			spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_KEEP);
+			size_t k = j * sizeof(uint32_t); /* byte addressing of buffer, move every 4 byte */
 
 			/* reconstruct data */
 			info.parameter[i].parameter_value[j] = \
-				((uint32_t)  ((uint8_t) (buffer[0])))        | \
-				(((uint32_t) ((uint8_t) (buffer[1]))) <<  8) | \
-				(((uint32_t) ((uint8_t) (buffer[2]))) << 16) | \
-				(((uint32_t) ((uint8_t) (buffer[3]))) << 24);
+				((uint32_t)  ((uint8_t) (buffer[k])))            | \
+				(((uint32_t) ((uint8_t) (buffer[k + 1]))) <<  8) | \
+				(((uint32_t) ((uint8_t) (buffer[k + 2]))) << 16) | \
+				(((uint32_t) ((uint8_t) (buffer[k + 3]))) << 24);
 		}
-
-		/**
-			* last parameter
-			*/
-
-		/* read sfdp header value (2 * uint32_t) */
-		spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_AUTO);
-
-		/* reconstruct data */
-		info.parameter[i].parameter_value[j] = \
-			((uint32_t)  ((uint8_t) (buffer[0])))        | \
-			(((uint32_t) ((uint8_t) (buffer[1]))) <<  8) | \
-			(((uint32_t) ((uint8_t) (buffer[2]))) << 16) | \
-			(((uint32_t) ((uint8_t) (buffer[3]))) << 24);
 	}
-
-
-	/**
-		* read last parameter
-		*/
-	address = info.parameter_header[i].header_value[1] & 0x00ffffff;
-
-	/* initialize command to read data */
-	cmd[0] = 0x5a; /* read sfdp register */
-	cmd[1] = (address >> 16) & 0xff;
-	cmd[2] = (address >>  8) & 0xff;
-	cmd[3] =  address        & 0xff;
-
-	cmd[4] = 0x00; /* dummy */
-
-	/**
-		* send command read sfdp register, keep cs low
-		* use buffer for temporary storage, read value will be discarded
-		*/
-	spim_transfer(spim, cmd, buffer, 5 * 8, SPIM_CS_KEEP);
-
-	/* make cmd empty again for transfer data */
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
-	cmd[3] = 0x00;
-
-	cmd[4] = 0x00;
-
-	for (j = 0;
-		(j < ((((size_t) (info.parameter_header[i].header_value[0] & 0xff000000)) >> 24) - 1)) && (j < (JESD216_PARAMETER_MAX_SIZE_DWORD - 1));
-		++j)
-	{
-		/* read sfdp header value (2 * uint32_t) */
-		spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_KEEP);
-
-		/* reconstruct data */
-		info.parameter[i].parameter_value[j] = \
-			((uint32_t)  ((uint8_t) (buffer[0])))        | \
-			(((uint32_t) ((uint8_t) (buffer[1]))) <<  8) | \
-			(((uint32_t) ((uint8_t) (buffer[2]))) << 16) | \
-			(((uint32_t) ((uint8_t) (buffer[3]))) << 24);
-	}
-
-	/**
-		* last parameter
-		*/
-
-	/* read sfdp header value (2 * uint32_t) */
-	spim_transfer(spim, cmd, buffer, (4 * 1) * 8, SPIM_CS_AUTO);
-
-	/* reconstruct data */
-	info.parameter[i].parameter_value[j] = \
-		((uint32_t)  ((uint8_t) (buffer[0])))        | \
-		(((uint32_t) ((uint8_t) (buffer[1]))) <<  8) | \
-		(((uint32_t) ((uint8_t) (buffer[2]))) << 16) | \
-		(((uint32_t) ((uint8_t) (buffer[3]))) << 24);
-
-
-
-
-
-
-
 
 
 	/**
