@@ -109,8 +109,8 @@
 #define ARCHI_UDMA_HAS_TRACER 0
 #define ARCHI_UDMA_HAS_FILTER    1
 
-#define ARCHI_UDMA_NB_SPIM   1
-#define ARCHI_UDMA_NB_UART   1
+#define ARCHI_UDMA_NB_SPIM   2
+#define ARCHI_UDMA_NB_UART   2
 #define ARCHI_UDMA_NB_SDIO      0
 #define ARCHI_UDMA_NB_I2C    2
 #define ARCHI_UDMA_NB_I2S    0
@@ -171,27 +171,37 @@
 #define ARCHI_SOC_EVENT_UART0_EOT         2
 #define ARCHI_SOC_EVENT_UART0_RX_DATA     3
 
-#define ARCHI_SOC_EVENT_SPIM0_RX          4
-#define ARCHI_SOC_EVENT_SPIM0_TX          5
-#define ARCHI_SOC_EVENT_SPIM0_CMD         6
-#define ARCHI_SOC_EVENT_SPIM0_EOT         7
+#define ARCHI_SOC_EVENT_UART1_RX          4
+#define ARCHI_SOC_EVENT_UART1_TX          5
+#define ARCHI_SOC_EVENT_UART1_EOT         6
+#define ARCHI_SOC_EVENT_UART1_RX_DATA     7
 
-#define ARCHI_SOC_EVENT_I2C0_RX           8
-#define ARCHI_SOC_EVENT_I2C0_TX           9
+#define ARCHI_SOC_EVENT_SPIM0_RX          8
+#define ARCHI_SOC_EVENT_SPIM0_TX          9
+#define ARCHI_SOC_EVENT_SPIM0_CMD         10
+#define ARCHI_SOC_EVENT_SPIM0_EOT         11
 
-#define ARCHI_SOC_EVENT_I2C1_RX           12
-#define ARCHI_SOC_EVENT_I2C1_TX           13
+#define ARCHI_SOC_EVENT_SPIM1_RX          12
+#define ARCHI_SOC_EVENT_SPIM1_TX          13
+#define ARCHI_SOC_EVENT_SPIM1_CMD         14
+#define ARCHI_SOC_EVENT_SPIM1_EOT         15
 
-#define ARCHI_SOC_EVENT_SDIO0_RX          16
-#define ARCHI_SOC_EVENT_SDIO0_TX          17
+#define ARCHI_SOC_EVENT_I2C0_RX           16
+#define ARCHI_SOC_EVENT_I2C0_TX           17
 
-#define ARCHI_SOC_EVENT_I2S0_RX           20
-#define ARCHI_SOC_EVENT_I2S0_TX           21
+#define ARCHI_SOC_EVENT_I2C1_RX           20
+#define ARCHI_SOC_EVENT_I2C1_TX           21
 
-#define ARCHI_SOC_EVENT_CPI0_RX           24
+/*#define ARCHI_SOC_EVENT_SDIO0_RX
+#define ARCHI_SOC_EVENT_SDIO0_TX
 
-#define ARCHI_SOC_EVENT_FILTER0_RX        28
-#define ARCHI_SOC_EVENT_FILTER0_TX        29
+#define ARCHI_SOC_EVENT_I2S0_RX
+#define ARCHI_SOC_EVENT_I2S0_TX
+
+#define ARCHI_SOC_EVENT_CPI0_RX*/
+
+#define ARCHI_SOC_EVENT_FILTER0_RX        25
+#define ARCHI_SOC_EVENT_FILTER0_TX        26
 
 #define ARCHI_SOC_EVENT_CLUSTER_ON_OFF   31
 #define ARCHI_SOC_EVENT_MSP              37
