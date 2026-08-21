@@ -175,9 +175,6 @@ int main(void)
 	uint8_t         buffer[SPI_FLASH_SECTOR_SIZE_BYTES];
 	size_t          buffer_len = SPI_FLASH_SECTOR_SIZE_BYTES; /* preset to sector size */
 
-	/* stop tick for this whole process */
-	pos_tick_stop();
-
 	/* set correct i/o pad function */
 	hal_apb_soc_pad_set_function(SPI_CS_PAD, SPI_CS_PAD_MUX_VALUE);
 	hal_apb_soc_pad_set_function(SPI_SCK_PAD, SPI_SCK_PAD_MUX_VALUE);
@@ -316,21 +313,11 @@ static size_t spi_nor_flash_read_sector(spim_t * restrict spim, uint32_t sector,
 	const uint32_t NUMBER_OF_SECTOR =
 		SPI_FLASH_SIZE_BYTES / SPI_FLASH_SECTOR_SIZE_BYTES;
 
-	const size_t   NUMBER_OF_PAGE_PER_SECTOR =
-		SPI_FLASH_SECTOR_SIZE_BYTES / SPI_FLASH_PAGE_SIZE_BYTES;
-
 	const uint32_t base_address =
 		sector * SPI_FLASH_SECTOR_SIZE_BYTES;
 
 	/* allocate in page basis */
-	uint8_t cmd[SPI_FLASH_PAGE_SIZE_BYTES];
-	uint8_t spi_rx[4];
-
-	uint8_t * restrict _data = data;
-
-	size_t i, data_offset;
-
-	size_t number_of_data_received = 0;
+	uint8_t cmd[4];
 
 	/* make sure we write correct sector */
 	if (sector >= NUMBER_OF_SECTOR)
@@ -348,37 +335,17 @@ static size_t spi_nor_flash_read_sector(spim_t * restrict spim, uint32_t sector,
 	cmd[2] = (base_address >>  8) & 0xff;
 	cmd[3] =  base_address        & 0xff;
 
-	/* send command read, keep cs low */
-	spim_transfer(spim, cmd, spi_rx, 4 * 8, SPIM_CS_KEEP);
+	/* send command read, read whole sector */
+	spim_cmd_rx(spim, cmd, 4 * 8, 0, data, SPI_FLASH_SECTOR_SIZE_BYTES);
 
-	/* make cmd empty again for transfer data so tx will send 0x00 */
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
-	cmd[3] = 0x00;
-
-	/* loop read data */
-	for (i = 1, data_offset = 0; /* start i from 1 to skip last data */
-		i < NUMBER_OF_PAGE_PER_SECTOR;
-		++i, data_offset += SPI_FLASH_PAGE_SIZE_BYTES)
-	{
-		/* read data */
-		spim_transfer(spim, cmd, &(_data[data_offset]), SPI_FLASH_PAGE_SIZE_BYTES * 8, SPIM_CS_KEEP);
-		number_of_data_received += SPI_FLASH_PAGE_SIZE_BYTES;
-	}
-
-	spim_transfer(spim, cmd, &(_data[data_offset]), SPI_FLASH_PAGE_SIZE_BYTES * 8, SPIM_CS_AUTO);
-	number_of_data_received += SPI_FLASH_PAGE_SIZE_BYTES;
-
-	return number_of_data_received;
+	return SPI_FLASH_SECTOR_SIZE_BYTES;
 }
 
 #if 0
 static size_t spi_nor_flash_read_data(spim_t * restrict spim, uint32_t base_address, void * restrict data, size_t size)
 {
 	/* allocate in page basis */
-	uint8_t cmd[SPI_FLASH_PAGE_SIZE_BYTES];
-	uint8_t spi_rx[4];
+	uint8_t cmd[4];
 
 	/* we should not write data again, use _data! */
 	uint8_t * restrict _data = data;
@@ -391,8 +358,8 @@ static size_t spi_nor_flash_read_data(spim_t * restrict spim, uint32_t base_addr
 		return 0;
 	}
 
-	/* empty out cmd */
-	memset(cmd, 0, SPI_FLASH_PAGE_SIZE_BYTES * sizeof(uint8_t));
+	/* initialize command to read data */
+	cmd[0] = 0x03; /* read data */
 
 	/* read per page size */
 	number_of_data_received = 0; /* set number_of_data_received to 0 */
@@ -419,23 +386,13 @@ static size_t spi_nor_flash_read_data(spim_t * restrict spim, uint32_t base_addr
 		/* otherwise, don't need to change read_size */
 
 
-		/* initialize command to read data */
-		cmd[0] = 0x03; /* read data */
+		/* set address, read command already set before loop */
 		cmd[1] = (base_address >> 16) & 0xff;
 		cmd[2] = (base_address >>  8) & 0xff;
 		cmd[3] =  base_address        & 0xff;
 
-		/* send command read, keep cs low */
-		spim_transfer(spim, cmd, spi_rx, 4 * 8, SPIM_CS_KEEP);
-
-		/* make cmd empty again for transfer data so tx will send 0x00 */
-		cmd[0] = 0x00;
-		cmd[1] = 0x00;
-		cmd[2] = 0x00;
-		cmd[3] = 0x00;
-
 		/* read data, at max 1 page at a time */
-		spim_transfer(spim, cmd, _data, read_size * 8, SPIM_CS_AUTO);
+		spim_cmd_rx(spim, cmd, 4 * 8, 0, _data, read_size);
 
 		/* move buffer */
 		_data        += read_size;
