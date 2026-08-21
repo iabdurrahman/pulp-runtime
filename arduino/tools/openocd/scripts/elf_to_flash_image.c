@@ -589,8 +589,8 @@ int main(int argc, char const *argv[])
 	hex_dump(0, pulpisimmo_elf_header_buffer, retval2, stderr);
 	fputc('\n', stderr);
 
-	/* pad with zero */
-	memset(&pulpisimmo_elf_header_buffer[retval2], 0, SPI_FLASH_SECTOR_SIZE_BYTES - retval2);
+	/* pad with 0xff */
+	memset(&pulpisimmo_elf_header_buffer[retval2], -1, SPI_FLASH_SECTOR_SIZE_BYTES - retval2);
 
 	/**
 		* set pulpisimmo_elf_header as alias to buffer
@@ -800,8 +800,8 @@ int main(int argc, char const *argv[])
 				{
 					assert(padding < SPI_FLASH_SECTOR_SIZE_BYTES);
 
-					/* zero fill padding */
-					memset(segment, 0, sizeof(uint8_t) * padding);
+					/* pad with 0xff */
+					memset(segment, -1, sizeof(uint8_t) * padding);
 
 					/* reuse segment buffer for padding */
 					retval2 = fwrite(segment, sizeof(uint8_t), padding, pulpisimmo_elf_fd);
@@ -1247,11 +1247,11 @@ static size_t generate_pulpissimo_elf_header_in_buffer(
 	/**
 		* add padding
 		* space discrepency between actual header size and pulpisimmo elf header size should be filled by padding
-		* we don't need to check buffer_len (it is already check in previous loop) we only fill (zero-fill) the empty space
+		* we don't need to check buffer_len (it is already check in previous loop) we only fill (with 0xff) the empty space
 		*/
 	if (pulpisimmo_elf_header_size > ((size_t) actual_header_size))
 	{
-		memset(((uint8_t * restrict) buffer) + (actual_header_size / sizeof(uint8_t)), 0, (pulpisimmo_elf_header_size - actual_header_size) / sizeof(uint8_t));
+		memset(((uint8_t * restrict) buffer) + (actual_header_size / sizeof(uint8_t)), -1, (pulpisimmo_elf_header_size - actual_header_size) / sizeof(uint8_t));
 	}
 
 
