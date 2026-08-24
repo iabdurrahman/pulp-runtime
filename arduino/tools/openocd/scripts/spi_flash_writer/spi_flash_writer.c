@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "pulp.h"
+#include <pulp.h>
 
 #include "debugger_writer.h"
 
@@ -210,9 +210,6 @@ int main(void)
 	uint8_t         buffer[SPI_FLASH_SECTOR_SIZE_BYTES];
 	size_t          buffer_len;
 
-	/* stop tick for this whole process */
-	pos_tick_stop();
-
 	/* set correct i/o pad function */
 	hal_apb_soc_pad_set_function(SPI_CS_PAD, SPI_CS_PAD_MUX_VALUE);
 	hal_apb_soc_pad_set_function(SPI_SCK_PAD, SPI_SCK_PAD_MUX_VALUE);
@@ -322,39 +319,37 @@ void pe_start(void)
 static void spi_nor_flash_write_enable(spim_t *spim)
 {
 	uint8_t cmd[1];
-	uint8_t spi_rx[1];
 
 	cmd[0] = 0x06; /* Write Enable */
 
-	spim_transfer(spim, cmd, spi_rx, 1 * 8, SPIM_CS_AUTO);
+	spim_cmd(spim, cmd, 1 * 8, 0);
+	pos_delay_busy_ms(1);
 }
 
 #if ((SPI_FLASH_CALL_WRITE_DISABLE) > 0)
 static void spi_nor_flash_write_disable(spim_t *spim)
 {
 	uint8_t cmd[1];
-	uint8_t spi_rx[1];
 
 	cmd[0] = 0x04; /* Write Disable */
 
-	spim_transfer(spim, cmd, spi_rx, 1 * 8, SPIM_CS_AUTO);
+	spim_cmd(spim, cmd, 1 * 8, 0);
+	pos_delay_busy_ms(1);
 }
 #endif /* ((SPI_FLASH_CALL_WRITE_DISABLE) > 0) */
 
 static bool spi_nor_flash_is_busy(spim_t *spim)
 {
-	uint8_t cmd[2];
-	uint8_t spi_rx[2];
+	uint8_t cmd[1];
+	uint8_t spi_rx[1];
 
 	cmd[0] = 0x05; /* Read Status Register-1 */
-	cmd[1] = 0x00;
 
-	spi_rx[0] = 0x00;
-	spi_rx[1] = 0x00;
+	spi_rx[0] = 0xff; /* set dummy value */
 
-	spim_transfer(spim, cmd, spi_rx, 2 * 8, SPIM_CS_AUTO);
+	spim_cmd_rx(spim, cmd, 1 * 8, 0, spi_rx, 1);
 
-	return (spi_rx[1] & 0x01) == 0x01;
+	return (spi_rx[0] & 0x01) == 0x01;
 }
 
 static void spi_nor_flash_wait_flash_ready(spim_t *spim)
@@ -374,7 +369,6 @@ static void spi_nor_flash_erase_sector(spim_t *spim, uint32_t sector)
 		sector * SPI_FLASH_SECTOR_SIZE_BYTES;
 
 	uint8_t cmd[4];
-	uint8_t spi_rx[4];
 
 	/* make sure we erase correct sector */
 	if (sector >= NUMBER_OF_SECTOR)
@@ -398,7 +392,8 @@ static void spi_nor_flash_erase_sector(spim_t *spim, uint32_t sector)
 	cmd[3] =  base_address        & 0xff; /* lsB fragment send last */
 
 	/* send erase command */
-	spim_transfer(spim, cmd, spi_rx, 4 * 8, SPIM_CS_AUTO);
+	spim_cmd(spim, cmd, 4 * 8, 0);
+	pos_delay_busy_ms(1);
 
 	/* wait until flash ready */
 	spi_nor_flash_wait_flash_ready(spim);
@@ -421,7 +416,6 @@ static void spi_nor_flash_write_sector(spim_t * restrict spim, uint32_t sector, 
 
 	/* allocate in page basis */
 	uint8_t cmd[4];
-	uint8_t spi_rx[SPI_FLASH_PAGE_SIZE_BYTES];
 
 	const uint8_t * restrict _data = data;
 
@@ -451,11 +445,9 @@ static void spi_nor_flash_write_sector(spim_t * restrict spim, uint32_t sector, 
 			*/
 		spi_nor_flash_write_enable(spim);
 
-		/* send command, keep cs */
-		spim_transfer(spim, cmd, spi_rx, 4 * 8, SPIM_CS_KEEP);
-
-		/* send data */
-		spim_transfer(spim, &(_data[data_offset]), spi_rx, SPI_FLASH_PAGE_SIZE_BYTES * 8, SPIM_CS_AUTO);
+		/* send data (prepend with command) */
+		spim_cmd_tx(spim, cmd, 4 * 8, 0, &(_data[data_offset]), SPI_FLASH_PAGE_SIZE_BYTES);
+		pos_delay_busy_ms(1);
 
 		/* wait idle */
 		spi_nor_flash_wait_flash_ready(spim);
@@ -472,21 +464,11 @@ static size_t spi_nor_flash_read_sector(spim_t * restrict spim, uint32_t sector,
 	const uint32_t NUMBER_OF_SECTOR =
 		SPI_FLASH_SIZE_BYTES / SPI_FLASH_SECTOR_SIZE_BYTES;
 
-	const size_t   NUMBER_OF_PAGE_PER_SECTOR =
-		SPI_FLASH_SECTOR_SIZE_BYTES / SPI_FLASH_PAGE_SIZE_BYTES;
-
 	const uint32_t base_address =
 		sector * SPI_FLASH_SECTOR_SIZE_BYTES;
 
 	/* allocate in page basis */
-	uint8_t cmd[SPI_FLASH_PAGE_SIZE_BYTES];
-	uint8_t spi_rx[4];
-
-	uint8_t * restrict _data = data;
-
-	size_t i, data_offset;
-
-	size_t number_of_data_received = 0;
+	uint8_t cmd[4];
 
 	/* make sure we write correct sector */
 	if (sector >= NUMBER_OF_SECTOR)
@@ -504,29 +486,10 @@ static size_t spi_nor_flash_read_sector(spim_t * restrict spim, uint32_t sector,
 	cmd[2] = (base_address >>  8) & 0xff;
 	cmd[3] =  base_address        & 0xff;
 
-	/* send command read, keep cs low */
-	spim_transfer(spim, cmd, spi_rx, 4 * 8, SPIM_CS_KEEP);
+	/* send command read, read whole sector */
+	spim_cmd_rx(spim, cmd, 4 * 8, 0, data, SPI_FLASH_SECTOR_SIZE_BYTES);
 
-	/* make cmd empty again for transfer data so tx will send 0x00 */
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
-	cmd[3] = 0x00;
-
-	/* loop read data */
-	for (i = 1, data_offset = 0; /* start i from 1 to skip last data */
-		i < NUMBER_OF_PAGE_PER_SECTOR;
-		++i, data_offset += SPI_FLASH_PAGE_SIZE_BYTES)
-	{
-		/* read data */
-		spim_transfer(spim, cmd, &(_data[data_offset]), SPI_FLASH_PAGE_SIZE_BYTES * 8, SPIM_CS_KEEP);
-		number_of_data_received += SPI_FLASH_PAGE_SIZE_BYTES;
-	}
-
-	spim_transfer(spim, cmd, &(_data[data_offset]), SPI_FLASH_PAGE_SIZE_BYTES * 8, SPIM_CS_AUTO);
-	number_of_data_received += SPI_FLASH_PAGE_SIZE_BYTES;
-
-	return number_of_data_received;
+	return SPI_FLASH_SECTOR_SIZE_BYTES;
 }
 
 /**
