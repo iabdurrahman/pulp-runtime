@@ -228,7 +228,7 @@ SECTIONS
    * Contains other data such as peripheral data and cluster code and data
    */
 
-  .l2_data MAX(0x1c010000,ALIGN(4)) :
+  .l2_data MAX(0x1c00f000,ALIGN(4)) :
   {
     . = ALIGN(4);
     __cluster_text_start = .;
