@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+# Copyright (C) 2026 Indonesia Chip Design Collaborative Center (ICDEC)
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT.
+
+generate_linker_script() {
+	if [[ ( -z "$BUILD_LOCATION ") ]] ; then
+		echo "error, BUILD_LOCATION environment variable is not defined" >&2
+		exit 1
+	fi
+
+	LINKER_SCRIPT_BASENAME="$(basename "$1")"
+	LINKER_SCRIPT_AT_BUILD_LOCATION="$BUILD_LOCATION/$LINKER_SCRIPT_BASENAME"
+
+	if [[ ( -z "$CC" ) || ( -z "$L2_SIZE" ) ]] ; then
+		# just copy
+		cp "$1" "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+	else
+		# check if template exist
+		if [[ -f "$1.in" ]] ; then
+			# generate linker script using template
+			"$CC" -E -P -x c "-DDL2_SIZE_$L2_SIZE" "$1.in" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+		else
+			# just copy
+			cp "$1" "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+		fi
+	fi
+
+	echo "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+}
+
+new_arg=()
+
+#i="0"
+while [[ "$#" -gt "0" ]] ; do
+	arg="$1"
+
+	# linker script can be given in 2 way:
+	# -T <ld file>
+	# or
+	# --script=<ld file>
+	# and between -T and <ld file> can have whitespace or without whitespace
+	if   [[ "$arg" == "-T"* ]] ; then
+
+		# check if <ld file> parameter is concatenated to -T (has whitespace) or not (without whitespace)
+
+		linker_script="$(echo "$arg" | sed -e "s/^-T//g")"
+		if [[ -z "$linker_script" ]] ; then
+			#echo "ld file is given by next argument"
+
+			# add -T to new_arg array
+			new_arg+=("$arg")
+			shift
+
+			# linker script is here
+			linker_script="$1"
+
+			# check if linker script template exist, and generate new arg
+			arg="$(generate_linker_script "$linker_script")"
+		else
+			# ld file is concatenated with -T
+			arg="-T$(generate_linker_script "$linker_script")"
+		fi
+
+	elif [[ "$arg" == "--script="* ]] ; then
+
+		# linker script is given with --script= style argument
+		arg="--script=$(generate_linker_script "$linker_script")"
+	fi
+
+	new_arg+=("$arg")
+	shift
+done
+
+# output new argument
+echo "${new_arg[@]}"
