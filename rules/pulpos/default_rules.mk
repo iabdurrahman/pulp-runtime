@@ -43,21 +43,15 @@ endif
 # ==========================================
 L2_SIZE ?= 512K
 
-ifeq ($(L2_SIZE),2MiB)
-    L2_LINKER_DEFS += -DL2_SIZE_2MiB
-else ifeq ($(L2_SIZE),1MiB)
-    L2_LINKER_DEFS += -DL2_SIZE_1MiB
-else ifeq ($(L2_SIZE),64KiB)
-    L2_LINKER_DEFS += -DL2_SIZE_64KiB
-else
-    L2_LINKER_DEFS += -DL2_SIZE_512KiB
-endif
-
-# Currently only supports pulpissimo chips linker.
-# TODO: Support for other chips
-RUNTIME_CHIP_DIR = $(PULPRT_HOME)/kernel/chips/pulpissimo
-
-$(shell $(PULP_CC) -E -P -x c $(L2_LINKER_DEFS) $(RUNTIME_CHIP_DIR)/link.ld.in -o $(RUNTIME_CHIP_DIR)/link.ld)
+#ifeq ($(L2_SIZE),2MiB)
+#    L2_LINKER_DEFS += -DL2_SIZE_2MiB
+#else ifeq ($(L2_SIZE),1MiB)
+#    L2_LINKER_DEFS += -DL2_SIZE_1MiB
+#else ifeq ($(L2_SIZE),64KiB)
+#    L2_LINKER_DEFS += -DL2_SIZE_64KiB
+#else
+#    L2_LINKER_DEFS += -DL2_SIZE_512KiB
+#endif
 
 
 ifdef gui
@@ -349,12 +343,21 @@ $(TARGET_BUILD_DIR)/$(1)/$(1): $(PULP_APP_OBJS_$(1))
 	$(V)mkdir -p `dirname $$@`
 ifeq ($(HAS_CXX),)
 ifeq ($(HAS_C),)
-	$(V)$(PULP_LD_AS) -o $$@ $$^ $(PULP_APP_ASM_LDFLAGS_$(1))
+	$(V)$(PULP_LD_AS) -o $$@ $$^ `export BUILD_LOCATION=$(TARGET_BUILD_DIR)/$(1) \
+		&& export CC=$(PULP_CC) \
+		&& L2_SIZE=$(L2_SIZE) \
+		&& $(PULPRT_HOME)/rules/pulpos/generate_linker_script $(PULP_APP_ASM_LDFLAGS_$(1))`
 else
-	$(V)$(PULP_LD_C) -o $$@ $$^ $(PULP_APP_C_LDFLAGS_$(1))
+	$(V)$(PULP_LD_C) -o $$@ $$^ `export BUILD_LOCATION=$(TARGET_BUILD_DIR)/$(1) \
+		&& export CC=$(PULP_CC) \
+		&& L2_SIZE=$(L2_SIZE) \
+		&& $(PULPRT_HOME)/rules/pulpos/generate_linker_script $(PULP_APP_C_LDFLAGS_$(1))`
 endif
 else
-	$(V)$(PULP_LD_CXX) -o $$@ $$^ $(PULP_APP_CXX_LDFLAGS_$(1))
+	$(V)$(PULP_LD_CXX) -o $$@ $$^ `export BUILD_LOCATION=$(TARGET_BUILD_DIR)/$(1) \
+		&& export CC=$(PULP_CC) \
+		&& L2_SIZE=$(L2_SIZE) \
+		&& $(PULPRT_HOME)/rules/pulpos/generate_linker_script $(PULP_APP_CXX_LDFLAGS_$(1))`
 endif
 
 $(TARGET_INSTALL_DIR)/bin/$(1): $(TARGET_BUILD_DIR)/$(1)/$(1)

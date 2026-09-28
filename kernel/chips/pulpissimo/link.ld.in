@@ -6,7 +6,7 @@ MEMORY
 /*
  * This linker script is a template. It will produce the appropriate
  * LENGTH size everytime make is called.
- * Currently only support 64KiB, 512KiB, 1MiB, and 2MiB.
+ * Currently only support 64kiB, 512kiB, 1MiB, and 2MiB.
  */
 
 {
@@ -16,9 +16,9 @@ MEMORY
       0x001ffffc
     #elif defined(L2_SIZE_1MiB)
       0x000ffffc
-    #elif defined(L2_SIZE_64KiB)
+    #elif defined(L2_SIZE_64kiB)
       0x0000fffc
-    #else /* Default to 512KiB */
+    #else /* Default to 512kiB */
       0x0007fffc
     #endif
 }
