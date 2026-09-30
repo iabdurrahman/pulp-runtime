@@ -60,9 +60,9 @@ PULP_CXXFLAGS    += -fdata-sections -ffunction-sections -fnothrow-opt -fno-rtti 
 
 PULP_OMP_CFLAGS    += -fopenmp -mnativeomp
 
-PULP_ASM_LDFLAGS += -nostartfiles -nostdlib -Wl,--gc-sections,--print-gc-sections,--print-memory-usage,--verbose=2 -T$(PULPRT_HOME)/kernel/chips/pulpissimo/link.ld -lgcc
-PULP_C_LDFLAGS += -nostartfiles -nostdlib -Wl,--gc-sections,--print-gc-sections,--print-memory-usage,--verbose=2 -T$(PULPRT_HOME)/kernel/chips/pulpissimo/link.ld -lgcc
-PULP_CXX_LDFLAGS += -nostartfiles -nostdlib -Wl,--gc-sections,--print-gc-sections,--print-memory-usage,--verbose=2 -T$(PULPRT_HOME)/kernel/chips/pulpissimo/link.ld -lstdc++ -lgcc
+PULP_ASM_LDFLAGS += -nostartfiles -nostdlib -Wl,--gc-sections,--print-memory-usage -T$(PULPRT_HOME)/kernel/chips/pulpissimo/link.ld -lgcc
+PULP_C_LDFLAGS += -nostartfiles -nostdlib -Wl,--gc-sections,--print-memory-usage -T$(PULPRT_HOME)/kernel/chips/pulpissimo/link.ld -lgcc
+PULP_CXX_LDFLAGS += -nostartfiles -nostdlib -Wl,--gc-sections,--print-memory-usage -T$(PULPRT_HOME)/kernel/chips/pulpissimo/link.ld -lstdc++ -lgcc
 
 PULP_AS = riscv32-unknown-elf-gcc
 PULP_CC = riscv32-unknown-elf-gcc

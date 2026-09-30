@@ -41,7 +41,7 @@ endif
 # ==========================================
 # AUTOMATED L2 LINKER SCRIPT CONFIGURATION
 # ==========================================
-L2_SIZE ?= 512K
+L2_SIZE ?= 512kiB
 
 #ifeq ($(L2_SIZE),2MiB)
 #    L2_LINKER_DEFS += -DL2_SIZE_2MiB
@@ -290,6 +290,14 @@ endif
 # PULP_APPS
 #
 
+# for linking, we try to modify argument passed to the linker (linker argument is given by PULP_APP_*_LDFLAGS_$(1))
+# this is done because linker script may need to be processed, and linker script argument given by PULP_APP_*_LDFLAGS_$(1)
+# maybe is a template thus need to be processed. this is done by helper script generate_linker_script
+# which consume all linker argument, and pass all that argument to linker except for linker script argument
+# generate_linker_script will try to detect if linker script given is a template or a template is exist at given linker script directory
+# then process it and put it in build directory. linker then build executable with linker in build directory
+# for now, helper script generate_linker_script need environment variable: BUILD_LOCATION, CC, and L2_SIZE
+
 define declare_app
 
 $(eval PULP_APP_C_SRCS_$(1) += $(PULP_APP_C_SRCS) $(PULP_C_SRCS) $(PULP_APP_FC_C_SRCS) $(PULP_APP_CL_C_SRCS) $(PULP_CL_C_SRCS))
@@ -345,18 +353,18 @@ ifeq ($(HAS_CXX),)
 ifeq ($(HAS_C),)
 	$(V)$(PULP_LD_AS) -o $$@ $$^ `export BUILD_LOCATION=$(TARGET_BUILD_DIR)/$(1) \
 		&& export CC=$(PULP_CC) \
-		&& L2_SIZE=$(L2_SIZE) \
+		&& export L2_SIZE=$(L2_SIZE) \
 		&& $(PULPRT_HOME)/rules/pulpos/generate_linker_script $(PULP_APP_ASM_LDFLAGS_$(1))`
 else
 	$(V)$(PULP_LD_C) -o $$@ $$^ `export BUILD_LOCATION=$(TARGET_BUILD_DIR)/$(1) \
 		&& export CC=$(PULP_CC) \
-		&& L2_SIZE=$(L2_SIZE) \
+		&& export L2_SIZE=$(L2_SIZE) \
 		&& $(PULPRT_HOME)/rules/pulpos/generate_linker_script $(PULP_APP_C_LDFLAGS_$(1))`
 endif
 else
 	$(V)$(PULP_LD_CXX) -o $$@ $$^ `export BUILD_LOCATION=$(TARGET_BUILD_DIR)/$(1) \
 		&& export CC=$(PULP_CC) \
-		&& L2_SIZE=$(L2_SIZE) \
+		&& export L2_SIZE=$(L2_SIZE) \
 		&& $(PULPRT_HOME)/rules/pulpos/generate_linker_script $(PULP_APP_CXX_LDFLAGS_$(1))`
 endif
 

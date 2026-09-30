@@ -20,10 +20,20 @@ generate_linker_script() {
 		# just copy
 		cp "$1" "$LINKER_SCRIPT_AT_BUILD_LOCATION"
 	else
+		# check if script given is template (has extension .in)
+		if [[ "$LINKER_SCRIPT_BASENAME" == *".in" ]] ; then
+			# remove suffix .in from LINKER_SCRIPT_BASENAME and LINKER_SCRIPT_AT_BUILD_LOCATION
+			LINKER_SCRIPT_BASENAME="$(echo "$LINKER_SCRIPT_BASENAME" | sed -e "s/\\.in\$//")"
+			LINKER_SCRIPT_AT_BUILD_LOCATION="$(echo "$LINKER_SCRIPT_AT_BUILD_LOCATION" | sed -e "s/\\.in\$//")"
+
+			# generate linker script using template
+			"$CC" -E -P -x c "-DDL2_SIZE_$L2_SIZE" "$1" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+
 		# check if template exist
-		if [[ -f "$1.in" ]] ; then
+		elif [[ -f "$1.in" ]] ; then
 			# generate linker script using template
 			"$CC" -E -P -x c "-DDL2_SIZE_$L2_SIZE" "$1.in" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+
 		else
 			# just copy
 			cp "$1" "$LINKER_SCRIPT_AT_BUILD_LOCATION"
