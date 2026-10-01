@@ -7,7 +7,12 @@
 # OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 # NONINFRINGEMENT.
 
-generate_linker_script() {
+# generate linker script from argument 1, if argument 1 is .in file or
+# .in file exist in the same directory as argument 1,
+# then new linker script will generated from that .in file
+# if .in file not exist, then just copy linker script to build directory
+# suffix _1 is used to differentiate this function/command from this script file name
+generate_linker_script_1() {
 	if [[ ( -z "$BUILD_LOCATION ") ]] ; then
 		echo "error, BUILD_LOCATION environment variable is not defined" >&2
 		exit 1
@@ -27,12 +32,12 @@ generate_linker_script() {
 			LINKER_SCRIPT_AT_BUILD_LOCATION="$(echo "$LINKER_SCRIPT_AT_BUILD_LOCATION" | sed -e "s/\\.in\$//")"
 
 			# generate linker script using template
-			"$CC" -E -P -x c "-DDL2_SIZE_$L2_SIZE" "$1" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+			"$CC" -E -P -x c "-DL2_SIZE_$L2_SIZE" "$1" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
 
 		# check if template exist
 		elif [[ -f "$1.in" ]] ; then
 			# generate linker script using template
-			"$CC" -E -P -x c "-DDL2_SIZE_$L2_SIZE" "$1.in" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
+			"$CC" -E -P -x c "-DL2_SIZE_$L2_SIZE" "$1.in" -o "$LINKER_SCRIPT_AT_BUILD_LOCATION"
 
 		else
 			# just copy
@@ -70,16 +75,16 @@ while [[ "$#" -gt "0" ]] ; do
 			linker_script="$1"
 
 			# check if linker script template exist, and generate new arg
-			arg="$(generate_linker_script "$linker_script")"
+			arg="$(generate_linker_script_1 "$linker_script")"
 		else
 			# ld file is concatenated with -T
-			arg="-T$(generate_linker_script "$linker_script")"
+			arg="-T$(generate_linker_script_1 "$linker_script")"
 		fi
 
 	elif [[ "$arg" == "--script="* ]] ; then
 
 		# linker script is given with --script= style argument
-		arg="--script=$(generate_linker_script "$linker_script")"
+		arg="--script=$(generate_linker_script_1 "$linker_script")"
 	fi
 
 	new_arg+=("$arg")
