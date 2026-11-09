@@ -144,7 +144,8 @@ long pos_tick_get_counter_ms(void);
 long pos_tick_get_counter_us(void);
 
 /* this function is implemented in assembly (tick32.S) */
-__attribute__ ((naked)) void pos_tick_1ms_interrupt_handler(void);
+/*__attribute__ ((naked))*/
+void pos_tick_1ms_interrupt_handler(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
