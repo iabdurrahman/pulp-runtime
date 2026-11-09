@@ -30,6 +30,9 @@
 #include <limits.h>
 /*#include <errno.h>*/
 
+/* for pow() used in strtod, if strtod is not used, you don't have to link with -lm */
+#include <math.h>
+
 /**
     * when arduino is used, provide implementation for:
     * strnlen
@@ -251,7 +254,7 @@ void *memchr(const void *s, int c, size_t n)
         if ((*_s) == ((uint8_t) c))
         {
             /* match found */
-            return _s;
+            return (void *) _s;
         }
     }
 
@@ -614,7 +617,8 @@ long strtol(const char *nptr, char **endptr, int base)
     cutoff /= (unsigned long) base;
 
     /* 5. Conversion loop */
-    for (accumulate = 0, any = 0;; s++) {
+    for (accumulate = 0, any = 0;; s++)
+    {
         c = *s;
         if      (isdigit(c)) c -= '0';
         else if (isalpha(c)) c  = tolower(c) - 'a' + 10;
@@ -623,8 +627,9 @@ long strtol(const char *nptr, char **endptr, int base)
         if (c >= base)       break;
 
         /* keep parsing even if any is -1, because we need to consume all digits */
-        if ((any < 0) ||
-            (accumulate > cutoff) || ((accumulate == cutoff) && (c > cutlim))) /* look ahead if conversion can cause overflow */
+        if ((any < 0)
+            || (accumulate > cutoff)
+            || ((accumulate == cutoff) && (c > cutlim))) /* look ahead if conversion can cause overflow */
         {
             /* keep flag indicate error, or set it to error */
             any = -1;
