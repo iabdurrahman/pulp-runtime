@@ -348,7 +348,7 @@ int spim_cmd_trx(spim_t * __restrict handle,
 	);
 
 	/* wait until finish */
-	while (plp_udma_busy(UDMA_SPIM_CMD_ADDR(handle->id)))
+	while (plp_udma_busy((ARCHI_UDMA_ADDR) + UDMA_SPIM_OFFSET(handle->id)))
 	{
 		/*__asm__ volatile ("wfi\n");*/
 	}
@@ -513,7 +513,7 @@ int spim_cmd_tx_rx(spim_t * __restrict handle,
 	);
 
 	/* wait until finish */
-	while (plp_udma_busy(UDMA_SPIM_CMD_ADDR(handle->id)))
+	while (plp_udma_busy((ARCHI_UDMA_ADDR) + UDMA_SPIM_OFFSET(handle->id)))
 	{
 		/*__asm__ volatile ("wfi\n");*/
 	}
